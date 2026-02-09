@@ -1,31 +1,16 @@
-FROM registry.redhat.io/rhel9/rhel-bootc:9.6
+FROM registry.redhat.io/rhel10/rhel-bootc:10.1
 
-LABEL org.opencontainers.image.authors="Alessandro Rossi <al.rossi87@gmail.com>"
+# Signal that this image is intended to be usable with bootc
+LABEL containers.bootc 1
 
 #install software
-RUN dnf -y install tmux mkpasswd
+#RUN dnf -y install tmux mkpasswd
 
 #configure bootc-user
-RUN pass=$(mkpasswd --method=SHA-512 --rounds=4096 redhat) && useradd -m -G wheel bootc-user -p $pass
+#RUN pass=$(mkpasswd --method=SHA-512 --rounds=4096 redhat) && useradd -m -G wheel bootc-user -p $pass
 
 #setup sudo to not require password
 RUN echo "%wheel        ALL=(ALL)       NOPASSWD: ALL" > /etc/sudoers.d/wheel-sudo
 
-#Using the optional heredoc format to help simplify the number of times we call RUN
-RUN <<EORUN
-set -xeuo pipefail
-
-#configure web server and relocate the webroot to be read-only and managed by this container image
-dnf -y install httpd && dnf clean all
-systemctl enable httpd
-mv /var/www /usr/share/www
-sed -ie 's,/var/www,/usr/share/www,' /etc/httpd/conf/httpd.conf
-echo "Welcome to the bootc-http instance!" > /usr/share/www/html/index.html
-
-EORUN
-
-#clean up caches in the image and lint the container
-RUN rm /var/{cache,lib}/dnf /var/lib/rhsm /var/cache/ldconfig -rf
+# Final lint step to prevent easy-to-catch issues at build time
 RUN bootc container lint
-
-EXPOSE 80
