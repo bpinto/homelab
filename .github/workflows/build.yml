@@ -44,7 +44,7 @@ jobs:
           # Lowercase the image uri
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
-          echo "TAGLIST=${{ github.ref == 'refs/heads/main' && 'latest' || github.head_ref }} ${{ steps.date.outputs.date }} ${{ github.sha }}" >> ${GITHUB_ENV}
+          echo "TAGLIST=${{ github.ref == 'refs/heads/main' && format('latest {0}', steps.date.outputs.date) || github.head_ref }} ${{ github.sha }}" >> ${GITHUB_ENV}
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -93,7 +93,7 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         run: |
           IMAGE_FULL="${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
-          for tag in ${{ env.TAGLIST }}; do
+          for tag in ${{ env.TAGS }}; do
             cosign sign -y --key env://COSIGN_PRIVATE_KEY $IMAGE_FULL:$tag
           done
         env:
