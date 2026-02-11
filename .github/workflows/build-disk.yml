@@ -74,7 +74,7 @@ jobs:
 
       - name: Build disk images
         id: build
-        uses: hanthor/bootc-image-builder-action@3dd308c8c20f887a53cddd66a37ee37f7deb38eb # add platform option
+        uses: hanthor/bootc-image-builder-action@337a9ae97b7deddd955c78525296e598dddf2479 # add platform option
         with:
           builder-image: ${{ env.BIB_IMAGE }}
           config-file: ${{ matrix.disk-type == 'anaconda-iso' && './bootc-ucore/disk_config/iso.toml' || './bootc-ucore/disk_config/disk.toml' }}
