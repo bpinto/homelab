@@ -74,7 +74,7 @@ jobs:
 
       - name: Build disk images
         id: build
-        uses: osbuild/bootc-image-builder-action@a7dc780ea6ed534c7098bd4d01e766391d3d9ebc
+        uses: hanthor/bootc-image-builder-action@3dd308c8c20f887a53cddd66a37ee37f7deb38eb # add platform option
         with:
           builder-image: ${{ env.BIB_IMAGE }}
           config-file: ${{ matrix.disk-type == 'anaconda-iso' && './bootc-ucore/disk_config/iso.toml' || './bootc-ucore/disk_config/disk.toml' }}
@@ -82,6 +82,7 @@ jobs:
           chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
           types: ${{ matrix.disk-type }}
           additional-args: --rootfs btrfs --use-librepo=True
+          platform: linux/${{ inputs.platform }}
 
       - name: Upload disk images and Checksum to Job Artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
