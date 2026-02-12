@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - "./bootc-ucore/disk_config/iso.toml"
+      - "./bootc-ucore/disk_config/config.toml"
       - "./.github/workflows/build-disk.yml"
   workflow_dispatch:
     inputs:
@@ -61,7 +61,7 @@ jobs:
         uses: osbuild/bootc-image-builder-action@a7dc780ea6ed534c7098bd4d01e766391d3d9ebc
         with:
           builder-image: ${{ env.BIB_IMAGE }}
-          config-file: ./bootc-ucore/disk_config/iso.toml
+          config-file: ./bootc-ucore/disk_config/config.toml
           image: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
           chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
           types: anaconda-iso
