@@ -1,49 +1,36 @@
 [customizations.installer.kickstart]
 contents = """
-network --bootproto=dhcp --device=link --activate --hostname=homelab-server
+network --bootproto=dhcp --device=link --activate --onboot=yes --hostname=homelab-server --nameserver=1.1.1.1
 
 # Keyboard and language settings
 keyboard --vckeymap=us --xlayouts='us'
 lang en_US.UTF-8
 
 # Disk configuration
-# Wipes all existing partitions on all drives and creates new partition table
-clearpart --all --initlabel
-# Automatically creates partitions (EFI, /boot, and LVM for the rest) on the first available disk
+zerombr # Initialize invalid partition tables
+clearpart --all --initlabel # Wipe all partitions
+
 autopart --type=lvm --nohome
+# Manual partitioning with custom /var/data partition
+#part /boot/efi --fstype="efi" --size=600
+#part /boot --fstype="xfs" --size=1024
+#part pv.01 --size=1 --grow
+#volgroup fedora pv.01
+#logvol / --fstype="xfs" --name="root" --vgname="fedora" --size=20480
+#logvol /var/data --fstype="xfs" --name="data" --vgname="fedora" --size=1 --grow
+#logvol swap --fstype="swap" --name="swap" --vgname="fedora" --size=4096
+
+ostreecontainer --transport=registry --url ghcr.io/bpinto/homelab-ucore:latest
 
 # User configuration
 user --name=core --groups=wheel --iscrypted --password=$6$aYM5AkmTvLcsA1G/$3DxCbdwCtdBWaTeOgkZaGTnTDOtjQvx5vY1IDDafPVPhLswHBKbEJap3CJxvjurBiWXRHtM.CPx0vyoOm6uUc1
-sshkey --username core "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoVTFS8h/0Ekj6NYQIW6e5O/zpM/8ZXb8yaYcsiE4qg bpinto@Brunos-MacBook-Pro.local"
+user --name=hass --groups=dialout --lock
 
-user --name=hass --groups=dialout
-sshkey --username hass "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoVTFS8h/0Ekj6NYQIW6e5O/zpM/8ZXb8yaYcsiE4qg bpinto@Brunos-MacBook-Pro.local"
+sshkey --username core "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGt3/28/vZ3WTWH1+y4iEWG+h3m09yOiGfDm0EsGrAw sequins33.fuses@icloud.com"
+sshkey --username hass "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGt3/28/vZ3WTWH1+y4iEWG+h3m09yOiGfDm0EsGrAw sequins33.fuses@icloud.com"
 
-# Root configuration
-rootpw --lock
+rootpw --lock # No password login for root
 
-# OSTree container
-# Specifies the container image to use as the base OS (bootc/ostree system)
-ostreecontainer --url ghcr.io/bpinto/homelab-ucore:latest
-
-# Automatically reboot after installation completes
-reboot
-
-%post
-bootc switch --mutate-in-place --transport registry ghcr.io/bpinto/homelab-ucore:latest
-%end
+# Automatically reboot and eject installation media
+reboot --eject
 """
-
-[customizations.installer.modules]
-enable = [
-  "org.fedoraproject.Anaconda.Modules.Storage",
-  "org.fedoraproject.Anaconda.Modules.Runtime"
-]
-disable = [
-  "org.fedoraproject.Anaconda.Modules.Network",
-  "org.fedoraproject.Anaconda.Modules.Security",
-  "org.fedoraproject.Anaconda.Modules.Services",
-  "org.fedoraproject.Anaconda.Modules.Users",
-  "org.fedoraproject.Anaconda.Modules.Subscription",
-  "org.fedoraproject.Anaconda.Modules.Timezone"
-]
