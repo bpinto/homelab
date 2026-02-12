@@ -13,7 +13,7 @@ clearpart --all --initlabel
 autopart --type=lvm --nohome
 
 # User configuration
-user --name=core --groups=wheel
+user --name=core --groups=wheel --iscrypted --password=$6$aYM5AkmTvLcsA1G/$3DxCbdwCtdBWaTeOgkZaGTnTDOtjQvx5vY1IDDafPVPhLswHBKbEJap3CJxvjurBiWXRHtM.CPx0vyoOm6uUc1
 sshkey --username core "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoVTFS8h/0Ekj6NYQIW6e5O/zpM/8ZXb8yaYcsiE4qg bpinto@Brunos-MacBook-Pro.local"
 
 user --name=hass --groups=dialout
