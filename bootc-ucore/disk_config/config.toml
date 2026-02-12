@@ -1,5 +1,34 @@
 [customizations.installer.kickstart]
 contents = """
+network --bootproto=dhcp --device=link --activate --hostname=homelab-server
+
+# Keyboard and language settings
+keyboard --vckeymap=us --xlayouts='us'
+lang en_US.UTF-8
+
+# Disk configuration
+# Wipes all existing partitions on all drives and creates new partition table
+clearpart --all --initlabel
+# Automatically creates partitions (EFI, /boot, and LVM for the rest) on the first available disk
+autopart --type=lvm --nohome
+
+# User configuration
+user --name=core --groups=wheel
+sshkey --username core "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoVTFS8h/0Ekj6NYQIW6e5O/zpM/8ZXb8yaYcsiE4qg bpinto@Brunos-MacBook-Pro.local"
+
+user --name=hass --groups=dialout
+sshkey --username hass "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILoVTFS8h/0Ekj6NYQIW6e5O/zpM/8ZXb8yaYcsiE4qg bpinto@Brunos-MacBook-Pro.local"
+
+# Root configuration
+rootpw --lock
+
+# OSTree container
+# Specifies the container image to use as the base OS (bootc/ostree system)
+ostreecontainer --url ghcr.io/bpinto/homelab-ucore:latest
+
+# Automatically reboot after installation completes
+reboot
+
 %post
 bootc switch --mutate-in-place --transport registry ghcr.io/bpinto/homelab-ucore:latest
 %end
