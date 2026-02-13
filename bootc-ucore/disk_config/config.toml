@@ -20,14 +20,14 @@ autopart --type=lvm --nohome
 #logvol /var/data --fstype="xfs" --name="data" --vgname="fedora" --size=1 --grow
 #logvol swap --fstype="swap" --name="swap" --vgname="fedora" --size=4096
 
-ostreecontainer --transport=registry --url ghcr.io/bpinto/homelab-ucore:latest
+bootc --source-imgref=ghcr.io/bpinto/homelab-ucore:latest
 
 # User configuration
-user --name=core --groups=wheel --iscrypted --password=$6$aYM5AkmTvLcsA1G/$3DxCbdwCtdBWaTeOgkZaGTnTDOtjQvx5vY1IDDafPVPhLswHBKbEJap3CJxvjurBiWXRHtM.CPx0vyoOm6uUc1
-#user --name=hass --groups=dialout --lock
+user --name=core --lock --groups=wheel
+user --name=hass --lock --groups=dialout
 
 sshkey --username core "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGt3/28/vZ3WTWH1+y4iEWG+h3m09yOiGfDm0EsGrAw sequins33.fuses@icloud.com"
-#sshkey --username hass "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGt3/28/vZ3WTWH1+y4iEWG+h3m09yOiGfDm0EsGrAw sequins33.fuses@icloud.com"
+sshkey --username hass "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDGt3/28/vZ3WTWH1+y4iEWG+h3m09yOiGfDm0EsGrAw sequins33.fuses@icloud.com"
 
 rootpw --lock # No password login for root
 
