@@ -2,7 +2,7 @@
 
 There are [varying methods](https://docs.fedoraproject.org/en-US/fedora-coreos/bare-metal/) of CoreOS installation for bare metal, cloud providers, and virtualization platforms.
 
-### Image Verification
+### Image verification
 
 These images are signed with sigstore's [cosign](https://docs.sigstore.dev/cosign/overview/). You can verify the signature by running the following command:
 
@@ -40,4 +40,34 @@ And then reboot to complete the installation.
 
 ```bash
 sudo reboot
+```
+
+## Home Assistant configuration
+
+### Configuring
+
+SSH into the CoreOS system with the **core** user:
+
+```bash
+ssh -i ~/.ssh/homelab core@IP.OF.YOUR.BOX
+```
+
+Run automatic setup script:
+
+```bash
+blujust hass-root-setup
+```
+
+### Running
+
+SSH into the CoreOS system with the **hass** user:
+
+```bash
+ssh -i ~/.ssh/homelab hass@IP.OF.YOUR.BOX
+```
+
+Run Home Assistant container:
+
+```bash
+blujust hass-user-setup
 ```
