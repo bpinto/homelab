@@ -1,1 +1,26 @@
-cosign.key
+# Only track specific file types
+# Ignore everything by default
+*
+
+# === Home Assistant Version Control Managed (do not edit below) ===
+# Tracked file types
+!*.yaml
+!**/.??*.yaml
+!*.yml
+!**/.??*.yml
+
+# Track lovelace dashboard configuration files
+!.storage/lovelace
+!.storage/lovelace_dashboards
+!.storage/lovelace_resources
+!.storage/lovelace.*
+# === End Home Assistant Version Control Managed ===
+
+# Allow directory traversal
+!*/
+
+# Re-ignore macOS metadata files (even if they match allowed extensions)
+._*
+
+# Excluded files
+secrets.yaml
