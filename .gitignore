@@ -2,6 +2,10 @@
 # Ignore everything by default
 *
 
+# Track bootc configuration files
+!bootc-ucore/**
+bootc-ucore/cosign.key
+
 # === Home Assistant Version Control Managed (do not edit below) ===
 # Tracked file types
 !*.yaml
