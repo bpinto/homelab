@@ -14,7 +14,7 @@ Environment=PODMAN_SYSTEMD_UNIT=%n
 Environment=TZ=Europe/Lisbon
 Restart=always
 RestartSec=30
-TimeoutStartSec=90
+TimeoutStartSec=180
 TimeoutStopSec=70
 ExecStartPre=/bin/rm -f %t/%n.ctr-id
 ExecStart=/usr/bin/podman run \
@@ -28,7 +28,10 @@ ExecStart=/usr/bin/podman run \
                           --health-start-period=30s \
                           --replace \
                           --detach \
+                          --cap-add=net_admin \
+                          --cap-add=net_raw \
                           --name=homeassistant \
+                          --volume=/run/dbus:/run/dbus:ro \
                           --volume=/srv/hass/homelab/home-assistant:/config:z \
                           --network=host \
                           ghcr.io/home-assistant/home-assistant:2026.2.3

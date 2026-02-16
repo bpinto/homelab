@@ -19,9 +19,9 @@ ExecStart=/usr/bin/podman run \
                           --detach \
                           --name=matter-server \
                           --security-opt apparmor=unconfined \
-                          --volume=/srv/hass/homelab/home-assistant/matter-server:/data:z \
                           --volume=/etc/localtime:/etc/localtime:ro \
                           --volume=/run/dbus:/run/dbus:ro \
+                          --volume=/srv/hass/homelab/home-assistant/matter-server:/data:z \
                           --network=host \
                           ghcr.io/matter-js/python-matter-server:8.1.2 \
                           --storage-path /data \
