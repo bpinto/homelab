@@ -10,7 +10,8 @@ RequiresMountsFor=%t/containers
 
 
 [Service]
-Environment=PODMAN_SYSTEMD_UNIT=%n TZ=Europe/Lisbon WATCHDOG_USEC=5000000
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Environment=TZ=Europe/Lisbon
 Restart=always
 RestartSec=30
 TimeoutStopSec=70
