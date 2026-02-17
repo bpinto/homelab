@@ -17,6 +17,11 @@ platforms:
 modules:
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
 
+  - type: dnf
+    install:
+      packages:
+        - neovim
+
   - type: systemd
 
   - type: justfiles
