@@ -1,0 +1,173 @@
+# Energy Monitoring Package
+# Place this file in your packages directory (e.g., config/packages/energy_monitoring.yaml)
+
+template:
+  - sensor:
+      # Template sensor for values of energy imported (active_power < 0)
+      - name: "Energy Import"
+        unique_id: energy_import
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% if states('sensor.on_grid_export_power')|float < 0 %}
+            {{ states('sensor.on_grid_export_power')|float * -1 }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+        availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
+
+      # Template sensor for values of energy exported (active_power > 0)
+      - name: "Energy Export"
+        unique_id: energy_export
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% if states('sensor.on_grid_export_power')|float > 0 %}
+            {{ states('sensor.on_grid_export_power')|float }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+        availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
+
+      - name: "Energy Battery Charge"
+        unique_id: energy_battery_charge
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% if states('sensor.battery_power')|float < 0 %}
+            {{ states('sensor.battery_power')|float * -1 }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+        availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
+
+      - name: "Energy Battery Discharge"
+        unique_id: energy_battery_discharge
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% if states('sensor.battery_power')|float > 0 %}
+            {{ states('sensor.battery_power')|float }}
+          {% else %}
+            {{ 0 }}
+          {% endif %}
+        availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
+
+      - name: "House Consumption"
+        unique_id: house_consumption
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {{
+            (states('sensor.pv_power')|float(0))
+            + (states('sensor.energy_import')|float(0))
+            + (states('sensor.energy_battery_discharge')|float(0))
+            - (states('sensor.energy_export')|float(0))
+            - (states('sensor.energy_battery_charge')|float(0))
+          }}
+        availability: >-
+          {{ states('sensor.pv_power') not in ['unknown', 'unavailable']
+             and states('sensor.energy_import') not in ['unknown', 'unavailable']
+             and states('sensor.energy_battery_discharge') not in ['unknown', 'unavailable']
+             and states('sensor.energy_export') not in ['unknown', 'unavailable']
+             and states('sensor.energy_battery_charge') not in ['unknown', 'unavailable']
+          }}
+
+sensor:
+  # Riemann sum integration sensors (W -> kWh)
+  - platform: integration
+    source: sensor.energy_import
+    name: "Energy Import Sum"
+    unique_id: energy_import_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.energy_export
+    name: "Energy Export Sum"
+    unique_id: energy_export_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.energy_battery_charge
+    name: "Energy Battery Charge Sum"
+    unique_id: energy_battery_charge_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.energy_battery_discharge
+    name: "Energy Battery Discharge Sum"
+    unique_id: energy_battery_discharge_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.pv_power
+    name: "PV Power Sum"
+    unique_id: pv_power_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.house_consumption
+    name: "House Consumption Sum"
+    unique_id: house_consumption_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+utility_meter:
+  energy_import_daily:
+    source: sensor.energy_import_sum
+    cycle: daily
+  energy_import_monthly:
+    source: sensor.energy_import_sum
+    cycle: monthly
+
+  energy_export_daily:
+    source: sensor.energy_export_sum
+    cycle: daily
+  energy_export_monthly:
+    source: sensor.energy_export_sum
+    cycle: monthly
+
+  house_consumption_daily:
+    source: sensor.house_consumption_sum
+    cycle: daily
+  house_consumption_monthly:
+    source: sensor.house_consumption_sum
+    cycle: monthly
+
+  energy_battery_charge_daily:
+    source: sensor.energy_battery_charge_sum
+    cycle: daily
+  energy_battery_charge_monthly:
+    source: sensor.energy_battery_charge_sum
+    cycle: monthly
+
+  energy_battery_discharge_daily:
+    source: sensor.energy_battery_discharge_sum
+    cycle: daily
+  energy_battery_discharge_monthly:
+    source: sensor.energy_battery_discharge_sum
+    cycle: monthly
+
+  pv_energy_daily:
+    source: sensor.pv_power_sum
+    cycle: daily
+  pv_energy_monthly:
+    source: sensor.pv_power_sum
+    cycle: monthly
+

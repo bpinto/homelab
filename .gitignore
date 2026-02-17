@@ -1,1 +1,42 @@
 cosign.key
+
+# Home Assistant (in home-assistant/ folder)
+home-assistant/home-assistant.log
+home-assistant/home-assistant.log.*
+home-assistant/home-assistant_v2
+home-assistant/home-assistant_v2.*
+home-assistant/*.db-journal
+home-assistant/*.log
+home-assistant/*.pid
+home-assistant/.ha_run.lock
+
+# Secrets and sensitive data
+home-assistant/secrets.yaml
+home-assistant/*.secret
+home-assistant/*.pem
+home-assistant/*.key
+home-assistant/*.crt
+
+# Home Assistant directories
+home-assistant/.storage/
+home-assistant/.cloud/
+home-assistant/deps/
+home-assistant/tts/
+home-assistant/www/
+home-assistant/*.noload
+
+# Custom components (optional)
+home-assistant/custom_components/
+
+# Backups
+home-assistant/backups/
+home-assistant/*.backup
+
+# Known devices
+home-assistant/known_devices.yaml
+home-assistant/*.conf
+
+# ESPHome (if using and in subfolder)
+home-assistant/esphome/.esphome/
+home-assistant/esphome/secrets.yaml
+
