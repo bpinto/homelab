@@ -40,3 +40,5 @@ home-assistant/*.conf
 home-assistant/esphome/.esphome/
 home-assistant/esphome/secrets.yaml
 
+# Solcast
+home-assistant/solcast_solar/
