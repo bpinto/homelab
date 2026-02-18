@@ -27,6 +27,13 @@
         "path": "/etc/ucore-autorebase",
         "mode": 492
       }
+    ],
+    "links": [
+      {
+        "overwrite": true,
+        "path": "/etc/localtime",
+        "target": "/usr/share/zoneinfo/Europe/Lisbon"
+      }
     ]
   },
   "systemd": {
