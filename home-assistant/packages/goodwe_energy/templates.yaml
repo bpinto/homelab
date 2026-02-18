@@ -77,3 +77,17 @@ template:
              and states('sensor.custom_goodwe_energy_export') not in ['unknown', 'unavailable']
              and states('sensor.custom_goodwe_energy_battery_charge') not in ['unknown', 'unavailable']
           }}
+
+      # Battery SoC in kWh
+      # This converts the battery SOC percentage to kWh
+      - name: "Custom Goodwe Battery State of Charge kWh"
+        unique_id: custom_goodwe_battery_state_of_charge_kwh
+        device_class: energy_storage
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >-
+          {% set battery_capacity = 7.0 %}
+          {% set soc_percent = states('sensor.battery_state_of_charge')|float(0) %}
+          {{ (battery_capacity * soc_percent / 100.0) | round(2) }}
+        availability: >-
+          {{ states('sensor.battery_state_of_charge') not in ['unknown', 'unavailable'] }}

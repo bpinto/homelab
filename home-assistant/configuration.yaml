@@ -8,3 +8,7 @@ frontend:
 # Enable packages
 homeassistant:
   packages: !include_dir_named packages/
+
+# Increase history retention to 14 days for predbat to have enough data for accurate predictions.
+recorder:
+  purge_keep_days: 14

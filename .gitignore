@@ -6,7 +6,7 @@ home-assistant/home-assistant.log.*
 home-assistant/home-assistant_v2
 home-assistant/home-assistant_v2.*
 home-assistant/*.db-journal
-home-assistant/*.log
+home-assistant/**/*.log
 home-assistant/*.pid
 home-assistant/.ha_run.lock
 
@@ -42,3 +42,6 @@ home-assistant/esphome/secrets.yaml
 
 # Solcast
 home-assistant/solcast_solar/
+
+# Predbat
+home-assistant/predbat/predbat_config.json
