@@ -1,8 +1,8 @@
 template:
   - sensor:
       # Template sensor for values of energy imported (active_power < 0)
-      - name: "Energy Import"
-        unique_id: energy_import
+      - name: "Custom Goodwe Energy Import"
+        unique_id: custom_goodwe_energy_import
         device_class: power
         unit_of_measurement: "W"
         state_class: measurement
@@ -15,8 +15,8 @@ template:
         availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
 
       # Template sensor for values of energy exported (active_power > 0)
-      - name: "Energy Export"
-        unique_id: energy_export
+      - name: "Custom Goodwe Energy Export"
+        unique_id: custom_goodwe_energy_export
         device_class: power
         unit_of_measurement: "W"
         state_class: measurement
@@ -28,8 +28,9 @@ template:
           {% endif %}
         availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
 
-      - name: "Energy Battery Charge"
-        unique_id: energy_battery_charge
+      # Template sensor for values of battery charge (active_power < 0)
+      - name: "Custom Goodwe Energy Battery Charge"
+        unique_id: custom_goodwe_energy_battery_charge
         device_class: power
         unit_of_measurement: "W"
         state_class: measurement
@@ -41,8 +42,9 @@ template:
           {% endif %}
         availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
 
-      - name: "Energy Battery Discharge"
-        unique_id: energy_battery_discharge
+      # Template sensor for values of battery discharge (active_power > 0)
+      - name: "Custom Goodwe Energy Battery Discharge"
+        unique_id: custom_goodwe_energy_battery_discharge
         device_class: power
         unit_of_measurement: "W"
         state_class: measurement
@@ -54,23 +56,24 @@ template:
           {% endif %}
         availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
 
-      - name: "House Consumption"
-        unique_id: house_consumption
+      # Template sensor for house consumption (PV + Import + Battery Discharge - Export - Battery Charge)
+      - name: "Custom Goodwe House Consumption"
+        unique_id: custom_goodwe_house_consumption
         device_class: power
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
           {{
             (states('sensor.pv_power')|float(0))
-            + (states('sensor.energy_import')|float(0))
-            + (states('sensor.energy_battery_discharge')|float(0))
-            - (states('sensor.energy_export')|float(0))
-            - (states('sensor.energy_battery_charge')|float(0))
+            + (states('sensor.custom_goodwe_energy_import')|float(0))
+            + (states('sensor.custom_goodwe_energy_battery_discharge')|float(0))
+            - (states('sensor.custom_goodwe_energy_export')|float(0))
+            - (states('sensor.custom_goodwe_energy_battery_charge')|float(0))
           }}
         availability: >-
           {{ states('sensor.pv_power') not in ['unknown', 'unavailable']
-             and states('sensor.energy_import') not in ['unknown', 'unavailable']
-             and states('sensor.energy_battery_discharge') not in ['unknown', 'unavailable']
-             and states('sensor.energy_export') not in ['unknown', 'unavailable']
-             and states('sensor.energy_battery_charge') not in ['unknown', 'unavailable']
+             and states('sensor.custom_goodwe_energy_import') not in ['unknown', 'unavailable']
+             and states('sensor.custom_goodwe_energy_battery_discharge') not in ['unknown', 'unavailable']
+             and states('sensor.custom_goodwe_energy_export') not in ['unknown', 'unavailable']
+             and states('sensor.custom_goodwe_energy_battery_charge') not in ['unknown', 'unavailable']
           }}
