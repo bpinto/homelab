@@ -1,37 +1,40 @@
 ## Installation
 
-> [!WARNING]  
-> [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
+There are [varying methods](https://docs.fedoraproject.org/en-US/fedora-coreos/bare-metal/) of CoreOS installation for bare metal, cloud providers, and virtualization platforms.
 
-To rebase an existing atomic Fedora installation to the latest build:
+### Image verification
 
-- First rebase to the unsigned image, to get the proper signing keys and policies installed:
-  ```
-  rpm-ostree rebase ostree-unverified-registry:ghcr.io/bpinto/homelab-ucore:latest
-  ```
-- Reboot to complete the rebase:
-  ```
-  systemctl reboot
-  ```
-- Then rebase to the signed image, like so:
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/bpinto/homelab-ucore:latest
-  ```
-- Reboot again to complete the installation
-  ```
-  systemctl reboot
-  ```
-
-The `latest` tag will automatically point to the latest build. That build will still always use the Fedora version specified in `recipe.yml`, so you won't get accidentally updated to the next major version.
-
-## ISO
-
-If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.
-
-## Verification
-
-These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command:
+These images are signed with sigstore's [cosign](https://docs.sigstore.dev/cosign/overview/). You can verify the signature by running the following command:
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/bpinto/homelab-ucore
+cosign verify --key https://github.com/bpinto/homelab/raw/main/bootc-ucore/cosign.pub ghcr.io/bpinto/homelab-ucore:latest
+```
+
+### Ignition file
+
+1. Download the [ignition template](https://github.com/bpinto/homelab/raw/main/bootc-ucore/template.ign) and update the SSH keys.
+2. Host the file on a web server or USB drive accessible during installation.
+3. Use the ignition file during CoreOS installation to automatically rebase to `ghcr.io/bpinto/homelab-ucore:latest` on first boot.
+
+> [!TIP]
+> Run `python3 -m http.server` in the ignition file directory for a quick web server, then use `http://<IP_ADDRESS>:8000/template.ign` during installation.
+
+### Installing
+
+Confirm the path of the system’s hard drive (probably /dev/sda).
+
+```bash
+sudo fdisk -l
+```
+
+Run the following command in the terminal to launch the installer.
+
+```bash
+sudo coreos-installer install /dev/sdX --insecure-ignition --ignition-url http://<IP_ADDRESS>:8000/template.ign
+```
+
+And then reboot to complete the installation.
+
+```bash
+sudo reboot
 ```
