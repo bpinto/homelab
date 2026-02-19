@@ -45,7 +45,7 @@ template:
         state: "{{ states('sensor.edp_indexada_horaria_tri_horario_ciclo_diario_all_prices') }}"
         icon: mdi:cash-multiple
         state_class: measurement
-        unit_of_measurement: €/kWh
+        unit_of_measurement: c/kWh
         attributes:
           raw_today: >
             {% set prices = state_attr('sensor.edp_indexada_horaria_tri_horario_ciclo_diario_all_prices', 'prices') %}
@@ -64,7 +64,7 @@ template:
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
-                  'value': price.price_w_vat
+                  'value': price.price_w_vat / 10
                 }] %}
               {% endif %}
             {% endfor %}
@@ -86,7 +86,7 @@ template:
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
-                  'value': price.price_w_vat
+                  'value': price.price_w_vat / 10
                 }] %}
               {% endif %}
             {% endfor %}
