@@ -17,29 +17,19 @@
 
 ### Configuring core user
 
-SSH into the CoreOS system with the **core** user:
+Run setup script with the **core** user:
 
 ```bash
 ssh -i ~/.ssh/homelab core@IP.OF.YOUR.BOX
-```
-
-Run automatic setup script:
-
-```bash
 blujust hass-root-setup
 ```
 
 ### Configuring hass user
 
-SSH into the CoreOS system with the **hass** user:
+Run setup script with the **hass** user:
 
 ```bash
 ssh -i ~/.ssh/homelab hass@IP.OF.YOUR.BOX
-```
-
-Run automatic setup script:
-
-```bash
 blujust hass-user-git-clone YOUR_GITHUB_TOKEN
 blujust hass-user-setup
 ```

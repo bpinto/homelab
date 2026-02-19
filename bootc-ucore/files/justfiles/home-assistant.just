@@ -2,6 +2,7 @@ hass-root-setup:
     sudo mkdir -p /srv/hass/
     sudo chown -R hass:hass /srv/hass
 
+    # Prevent containers from being killed when the user logs out
     sudo loginctl enable-linger hass
 
 hass-user-git-clone GITHUB_TOKEN REPO_URL="https://github.com/bpinto/homelab.git" BRANCH="hass": _check-hass-user
