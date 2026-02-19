@@ -91,3 +91,96 @@ template:
           {{ (battery_capacity * soc_percent / 100.0) | round(2) }}
         availability: >-
           {{ states('sensor.battery_state_of_charge') not in ['unknown', 'unavailable'] }}
+
+sensor:
+  # Riemann sum integration sensors (W -> kWh)
+  - platform: integration
+    source: sensor.custom_goodwe_energy_import
+    name: "Custom Goodwe Energy Import Sum"
+    unique_id: custom_goodwe_energy_import_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.custom_goodwe_energy_export
+    name: "Custom Goodwe Energy Export Sum"
+    unique_id: custom_goodwe_energy_export_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.custom_goodwe_energy_battery_charge
+    name: "Custom Goodwe Energy Battery Charge Sum"
+    unique_id: custom_goodwe_energy_battery_charge_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.custom_goodwe_energy_battery_discharge
+    name: "Custom Goodwe Energy Battery Discharge Sum"
+    unique_id: custom_goodwe_energy_battery_discharge_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.pv_power
+    name: "Custom Goodwe PV Power Sum"
+    unique_id: custom_goodwe_pv_power_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+  - platform: integration
+    source: sensor.custom_goodwe_house_consumption
+    name: "Custom Goodwe House Consumption Sum"
+    unique_id: custom_goodwe_house_consumption_sum
+    unit_prefix: k
+    round: 2
+    method: left
+
+utility_meter:
+  custom_goodwe_energy_import_daily:
+    source: sensor.custom_goodwe_energy_import_sum
+    cycle: daily
+  custom_goodwe_energy_import_monthly:
+    source: sensor.custom_goodwe_energy_import_sum
+    cycle: monthly
+
+  custom_goodwe_energy_export_daily:
+    source: sensor.custom_goodwe_energy_export_sum
+    cycle: daily
+  custom_goodwe_energy_export_monthly:
+    source: sensor.custom_goodwe_energy_export_sum
+    cycle: monthly
+
+  custom_goodwe_house_consumption_daily:
+    source: sensor.custom_goodwe_house_consumption_sum
+    cycle: daily
+  custom_goodwe_house_consumption_monthly:
+    source: sensor.custom_goodwe_house_consumption_sum
+    cycle: monthly
+
+  custom_goodwe_energy_battery_charge_daily:
+    source: sensor.custom_goodwe_energy_battery_charge_sum
+    cycle: daily
+  custom_goodwe_energy_battery_charge_monthly:
+    source: sensor.custom_goodwe_energy_battery_charge_sum
+    cycle: monthly
+
+  custom_goodwe_energy_battery_discharge_daily:
+    source: sensor.custom_goodwe_energy_battery_discharge_sum
+    cycle: daily
+  custom_goodwe_energy_battery_discharge_monthly:
+    source: sensor.custom_goodwe_energy_battery_discharge_sum
+    cycle: monthly
+
+  custom_goodwe_pv_energy_daily:
+    source: sensor.custom_goodwe_pv_power_sum
+    cycle: daily
+  custom_goodwe_pv_energy_monthly:
+    source: sensor.custom_goodwe_pv_power_sum
+    cycle: monthly
