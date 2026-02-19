@@ -14,3 +14,80 @@ input_number:
     max: 4600 # Obtained from official GW5048D-ES datasheet
     step: 1
     unit_of_measurement: "W"
+
+template:
+  - sensor:
+      # Convert PT energy prices to a format compatible with predbat
+      # PT Integration: https://github.com/joaofernandes/portuguese_energy_price_tracker_ha_integration
+      #
+      # Input format:
+      #
+      # prices:
+      #   - datetime: '2026-02-19T00:00:00+00:00'
+      #     interval: '[00:00-00:15['
+      #     price: 0.03544
+      #     price_w_vat: 0.04359
+      #     market_price: 0.00091
+      #     tar_cost: 0.0158
+      #
+      # Output format:
+      #
+      # - start: "2026-02-19T00:00:00+00:00",
+      #   end: "2026-02-19T00:15:00+00:00",
+      #   value: 0.04359
+      #
+      # ---
+      #
+      # Note: Due to some bug in the PT energy price tracker integration, the active sensors are not
+      # reliably working, so I'm hard-coding the provider name here.
+      - name: "Custom Predbat Current Buy Electricity Price Raw"
+        unique_id: custom_predbat_current_buy_electricity_price_raw
+        state: "{{ states('sensor.edp_indexada_horaria_tri_horario_ciclo_diario_all_prices') }}"
+        icon: mdi:cash-multiple
+        state_class: measurement
+        unit_of_measurement: €/kWh
+        attributes:
+          raw_today: >
+            {% set prices = state_attr('sensor.edp_indexada_horaria_tri_horario_ciclo_diario_all_prices', 'prices') %}
+            {% set ns = namespace(output=[]) %}
+            {% for price in prices %}
+              {% set start_dt = price.datetime | as_datetime %}
+              {% if start_dt < today_at() + timedelta(days=1) %}
+                {% set interval_clean = price.interval.strip('[]') %}
+                {% set start_str, end_str = interval_clean.split('-') %}
+                {% set start_parts = start_str.split(':') %}
+                {% set end_parts = end_str.split(':') %}
+                {% set start_minutes = (start_parts[0] | int) * 60 + (start_parts[1] | int) %}
+                {% set end_minutes = (end_parts[0] | int) * 60 + (end_parts[1] | int) %}
+                {% set duration = end_minutes - start_minutes %}
+                {% set end_dt = start_dt + timedelta(minutes=duration) %}
+                {% set ns.output = ns.output + [{
+                  'start': start_dt.isoformat(),
+                  'end': end_dt.isoformat(),
+                  'value': price.price_w_vat
+                }] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.output | sort(attribute='start') }}
+          raw_tomorrow: >
+            {% set prices = state_attr('sensor.edp_indexada_horaria_tri_horario_ciclo_diario_all_prices', 'prices') %}
+            {% set ns = namespace(output=[]) %}
+            {% for price in prices %}
+              {% set start_dt = price.datetime | as_datetime %}
+              {% if start_dt >= today_at() + timedelta(days=1) %}
+                {% set interval_clean = price.interval.strip('[]') %}
+                {% set start_str, end_str = interval_clean.split('-') %}
+                {% set start_parts = start_str.split(':') %}
+                {% set end_parts = end_str.split(':') %}
+                {% set start_minutes = (start_parts[0] | int) * 60 + (start_parts[1] | int) %}
+                {% set end_minutes = (end_parts[0] | int) * 60 + (end_parts[1] | int) %}
+                {% set duration = end_minutes - start_minutes %}
+                {% set end_dt = start_dt + timedelta(minutes=duration) %}
+                {% set ns.output = ns.output + [{
+                  'start': start_dt.isoformat(),
+                  'end': end_dt.isoformat(),
+                  'value': price.price_w_vat
+                }] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.output | sort(attribute='start') }}
