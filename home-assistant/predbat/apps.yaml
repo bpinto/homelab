@@ -107,8 +107,11 @@ pred_bat:
     - 5000
 
   # Cap the charge rate due to Portugal's simultaneous power limit (6.9kVA in my case)
+  # Unfortunately, this change will also limit solar charging.
+  # Investigate low rate charging: https://springfall2008.github.io/batpred/customisation/#inverter-control-options
+  # Ref: https://springfall2008.github.io/batpred/inverter-setup/#huawei
   inverter_limit_charge:
-    - 1800 # 50% of 3.6kW max charge rate for Pylontech US3000C battery (sustained 1.8kW per battery)
+    - 1800
 
   ##
   # Controlling the Inverter: Charge/Discharge rate
@@ -128,11 +131,11 @@ pred_bat:
 
   # Maximum battery charge/discharge rate in watts
   battery_rate_max:
-    - 3000 # Pylontech US3000C battery (sustained 1.8kW per battery)
+    - 3400 # Pylontech US3000C battery (max sustained 1.8kW per battery)
 
   # Maximum charge level for the battery in kWh
   soc_max:
-    - 7.0
+    - 7.0 # Pylontech US3000C battery (3.5kWh capacity per battery)
 
   # Limits the target SoC% setting for charge and discharge
   battery_min_soc:
