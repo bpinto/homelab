@@ -9,6 +9,12 @@ frontend:
 homeassistant:
   packages: !include_dir_named packages/
 
-# Increase history retention to 14 days for predbat to have enough data for accurate predictions.
+# Expose Home Assistant to the tailscale network
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+
+# Increase history retention to 14 days for predbat to have enough data for accurate predictions
 recorder:
   purge_keep_days: 14
