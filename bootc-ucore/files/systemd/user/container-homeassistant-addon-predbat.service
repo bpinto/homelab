@@ -21,7 +21,7 @@ ExecStart=/usr/bin/podman run \
                           --name=predbat \
                           --user=predbat \
                           --userns=keep-id:uid=9005,gid=9005 \
-                          --network=host \
+                          --publish=5052:5052 \
                           --volume=/srv/hass/homelab/home-assistant/predbat:/config:z \
                           --volume=/srv/hass/homelab/home-assistant/secrets.yaml:/config/secrets.yaml:z \
                           --volume=/etc/localtime:/etc/localtime:ro \
