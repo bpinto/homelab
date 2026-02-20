@@ -24,8 +24,14 @@ modules:
 
   - type: systemd
 
+  - type: files
+    files:
+      - source: etc
+        destination: /etc
+
   - type: justfiles
     validate: true
     install: true
     include:
       - home-assistant.just
+      - tailscale.just

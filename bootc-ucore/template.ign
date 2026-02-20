@@ -28,6 +28,17 @@
         "mode": 492
       }
     ],
+    "files": [
+      {
+        "overwrite": true,
+        "path": "/etc/hostname",
+        "contents": {
+          "compression": "",
+          "source": "data:,ucore.homelab.bpinto.com"
+        },
+        "mode": 420
+      }
+    ],
     "links": [
       {
         "overwrite": true,
