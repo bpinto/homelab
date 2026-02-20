@@ -26,6 +26,7 @@ ExecStart=/usr/bin/podman run \
                           --volume=/srv/hass/homelab/home-assistant/secrets.yaml:/config/secrets.yaml:z \
                           --volume=/etc/localtime:/etc/localtime:ro \
                           docker.io/nipar44/predbat_addon:slim-latest
+ExecStartPost=/usr/bin/tailscale serve --service=svc:predbat 127.0.0.1:5052
 ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
 ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
 Type=notify

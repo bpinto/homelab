@@ -1,6 +1,9 @@
 tailscale-root-setup AUTH_TOKEN:
     sudo systemctl enable --now tailscaled.service
 
+    # Allow the Tailscale client to be managed by the "hass" user
+    sudo tailscale set --operator=hass
+
     # Expose web servers to the Tailscale network by adding the
     # HTTP and HTTPS services to the DMZ zone.
     sudo firewall-cmd --add-service=http --zone=dmz
