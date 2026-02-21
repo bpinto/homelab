@@ -104,13 +104,6 @@ pred_bat:
   inverter_limit:
     - 5000
 
-  # Cap the charge rate due to Portugal's simultaneous power limit (6.9kVA in my case)
-  # Unfortunately, this change will also limit solar charging.
-  # Investigate low rate charging: https://springfall2008.github.io/batpred/customisation/#inverter-control-options
-  # Ref: https://springfall2008.github.io/batpred/inverter-setup/#huawei
-  inverter_limit_charge:
-    - 1800
-
   ##
   # Controlling the Inverter: Charge/Discharge rate
   ##
