@@ -1,4 +1,26 @@
 template:
+  - number:
+      # Charge rate in watts
+      - name: "Custom Goodwe Eco Mode Power Watts"
+        unique_id: custom_goodwe_eco_mode_power_watts
+        min: 0
+        max: 3600
+        step: 1
+        unit_of_measurement: "W"
+        state: >-
+          {% set max_power = 3600 %}
+          {% set percent = states('number.goodwe_eco_mode_power')|float(0) %}
+          {{ (percent * max_power / 100) | round(0) }}
+        set_value:
+          service: number.set_value
+          target:
+            entity_id: number.goodwe_eco_mode_power
+          data:
+            value: >-
+              {% set max_power = 3600 %}
+              {% set pct = (value | float / max_power * 100) %}
+              {{ [ [pct, 0] | max, 100 ] | min | round(0) }}
+
   - sensor:
       # Template sensor for values of energy imported (active_power < 0)
       - name: "Custom Goodwe Energy Import"
@@ -77,20 +99,6 @@ template:
              and states('sensor.custom_goodwe_energy_export') not in ['unknown', 'unavailable']
              and states('sensor.custom_goodwe_energy_battery_charge') not in ['unknown', 'unavailable']
           }}
-
-      # Battery SoC in kWh
-      # This converts the battery SOC percentage to kWh
-      - name: "Custom Goodwe Battery State of Charge kWh"
-        unique_id: custom_goodwe_battery_state_of_charge_kwh
-        device_class: energy_storage
-        unit_of_measurement: "kWh"
-        state_class: measurement
-        state: >-
-          {% set battery_capacity = 7.0 %}
-          {% set soc_percent = states('sensor.battery_state_of_charge')|float(0) %}
-          {{ (battery_capacity * soc_percent / 100.0) | round(2) }}
-        availability: >-
-          {{ states('sensor.battery_state_of_charge') not in ['unknown', 'unavailable'] }}
 
 sensor:
   # Riemann sum integration sensors (W -> kWh)

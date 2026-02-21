@@ -16,8 +16,6 @@
 #
 #  - Battery capacity (soc_max)
 #  - Inverter limit (inverter_limit)
-#  - Max charge rate (custom_predbat_charge_rate)
-#  - Max discharge rate (custom_predbat_discharge_rate)
 # ------------------------------------------------------------------
 ---
 pred_bat:
@@ -119,11 +117,7 @@ pred_bat:
 
   # Battery charge rate entity in watts
   charge_rate:
-    - input_number.custom_predbat_charge_rate
-
-  # Battery discharge rate entity in watts
-  discharge_rate:
-    - input_number.custom_predbat_discharge_rate
+    - number.custom_goodwe_eco_mode_power_watts
 
   ##
   # Controlling the Inverter: Battery Information
@@ -131,7 +125,7 @@ pred_bat:
 
   # Maximum battery charge/discharge rate in watts
   battery_rate_max:
-    - 3400 # Pylontech US3000C battery (max sustained 1.8kW per battery)
+    - 3600 # Pylontech US3000C battery (max sustained 1.8kW per battery)
 
   # Maximum charge level for the battery in kWh
   soc_max:
@@ -172,15 +166,9 @@ pred_bat:
   # Controlling the Inverter: Battery SoC
   ##
 
-  # Battery SoC in kWh
-  soc_kw:
-    - sensor.custom_goodwe_battery_state_of_charge_kwh
-
-  ##
-  # Controlling the Inverter: Schedule
-  ##
-
-  # NOT IMPLEMENTED YET
+  # Battery SoC
+  soc_percent:
+    - sensor.battery_state_of_charge
 
   ##
   # Solcast Solar Forecast
@@ -282,7 +270,7 @@ pred_bat:
     name: "GOODWE_5048D_ES"
     has_rest_api: False
     has_mqtt_api: False
-    has_service_api: False
+    has_service_api: True
     output_charge_control: "power"
     charge_control_immediate: False
     current_dp: 1
@@ -307,3 +295,33 @@ pred_bat:
     num_load_entities: 1
     soc_units: "%"
     write_and_poll_sleep: 5
+
+  charge_start_service:
+    - service: select.select_option
+      entity_id: "select.goodwe_inverter_operation_mode"
+      option: eco_charge
+    - delay:
+        seconds: 10
+    - service: number.set_value
+      entity_id: "number.custom_goodwe_eco_mode_power_watts"
+      value: "{power}"
+    - delay:
+        seconds: 10
+    - service: number.set_value
+      entity_id: "number.goodwe_eco_mode_soc"
+      value: "{target_soc}"
+
+  charge_stop_service:
+    - service: select.select_option
+      entity_id: "select.goodwe_inverter_operation_mode"
+      option: general
+
+  # This is a no-op definition.
+  #
+  # Before adjusting the charge settings (adjust_charge_immediate method), Predbat will call
+  # this service to stop discharging, and then call the charge_start_service to start charging
+  # with the new settings.
+  #
+  # Without this no-op service, Predbat will call the charge_stop_service before calling the
+  # charge_start_service which would unnecessary cause the inverter mode to change twice.
+  discharge_stop_service: []
