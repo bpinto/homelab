@@ -1,0 +1,5 @@
+substitutions:
+  name: mitsubishi-lucas-bedroom-ac
+  friendly_name: Ar Condicionado do Quarto do Lucas
+
+<<: !include packages/mitsubishi-cn105-m5nanoc6.yaml

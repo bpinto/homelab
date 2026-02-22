@@ -1,0 +1,5 @@
+substitutions:
+  name: mitsubishi-living-room-ac
+  friendly_name: Ar Condicionado da Sala de TV
+
+<<: !include packages/mitsubishi-cn105-m5nanoc6.yaml
