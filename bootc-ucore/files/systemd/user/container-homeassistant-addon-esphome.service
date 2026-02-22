@@ -1,0 +1,33 @@
+[Unit]
+Description=ESPHome Container
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=%t/containers
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Environment=TZ=Europe/Lisbon
+Restart=always
+RestartSec=30
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/%n.ctr-id
+ExecStart=/usr/bin/podman run \
+                          --cidfile=%t/%n.ctr-id \
+                          --cgroups=no-conmon \
+                          --rm \
+                          --sdnotify=conmon \
+                          --replace \
+                          --detach \
+                          --name=esphome \
+                          --group-add keep-groups \
+                          --volume=/srv/hass/homelab/esphome:/config:z \
+                          --network=host \
+                          docker.io/esphome/esphome:2026.2.1
+ExecStartPost=/usr/bin/tailscale serve --service=svc:esphome 127.0.0.1:6052
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
+ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target
