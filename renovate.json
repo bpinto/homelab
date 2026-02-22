@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["\\.service$"],
+      "matchStrings": [
+        "\\s+docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]+)\\s+"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://registry-1.docker.io"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["\\.service$"],
+      "matchStrings": [
+        "\\s+ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]+)\\s+"
+      ],
+      "datasourceTemplate": "docker",
+      "registryUrlTemplate": "https://ghcr.io"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackagePatterns": [".*"],
+      "versioning": "regex:^(?:slim-v|v)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+    }
+  ]
+}
