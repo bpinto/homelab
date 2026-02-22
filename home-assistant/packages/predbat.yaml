@@ -47,7 +47,7 @@ template:
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
-                  'value': price.price_w_vat / 10
+                  'value': price.price_w_vat
                 }] %}
               {% endif %}
             {% endfor %}
@@ -69,7 +69,7 @@ template:
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
-                  'value': price.price_w_vat / 10
+                  'value': price.price_w_vat
                 }] %}
               {% endif %}
             {% endfor %}
