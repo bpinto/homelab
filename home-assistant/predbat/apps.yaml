@@ -108,6 +108,10 @@ pred_bat:
   # Controlling the Inverter: Charge/Discharge rate
   ##
 
+  # Battery SoC target in percentage
+  charge_limit:
+    - number.goodwe_eco_mode_soc
+
   # Battery charge rate entity in percentage
   charge_rate_percent:
     - number.goodwe_eco_mode_power
@@ -289,7 +293,7 @@ pred_bat:
     charge_discharge_with_rate: False
     has_charge_enable_time: False
     has_discharge_enable_time: False
-    has_target_soc: False
+    has_target_soc: True
     target_soc_used_for_discharge: False
     has_reserve_soc: False
     has_timed_pause: False
@@ -312,9 +316,6 @@ pred_bat:
     - service: select.select_option
       entity_id: "select.goodwe_inverter_operation_mode"
       option: eco_charge
-    - service: number.set_value
-      entity_id: "number.goodwe_eco_mode_soc"
-      value: "{target_soc}"
 
   charge_stop_service:
     - service: select.select_option
