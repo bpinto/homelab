@@ -5,6 +5,10 @@ secrets.yaml
 *.key
 *.crt
 
+# ESPHome
+esphome/.esphome/
+esphome/archive/
+
 # Home Assistant (in home-assistant/ folder)
 home-assistant/home-assistant.log
 home-assistant/home-assistant.log.*
@@ -33,9 +37,6 @@ home-assistant/*.backup
 # Known devices
 home-assistant/known_devices.yaml
 home-assistant/*.conf
-
-# ESPHome (if using and in subfolder)
-home-assistant/esphome/.esphome/
 
 # Solcast
 home-assistant/solcast_solar/
