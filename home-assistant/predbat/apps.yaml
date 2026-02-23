@@ -108,9 +108,9 @@ pred_bat:
   # Controlling the Inverter: Charge/Discharge rate
   ##
 
-  # Battery charge rate entity in watts
-  charge_rate:
-    - number.custom_goodwe_eco_mode_power_watts
+  # Battery charge rate entity in percentage
+  charge_rate_percent:
+    - number.goodwe_eco_mode_power
 
   ##
   # Controlling the Inverter: Battery Information
@@ -312,13 +312,6 @@ pred_bat:
     - service: select.select_option
       entity_id: "select.goodwe_inverter_operation_mode"
       option: eco_charge
-    - delay:
-        seconds: 10
-    - service: number.set_value
-      entity_id: "number.custom_goodwe_eco_mode_power_watts"
-      value: "{power}"
-    - delay:
-        seconds: 10
     - service: number.set_value
       entity_id: "number.goodwe_eco_mode_soc"
       value: "{target_soc}"
