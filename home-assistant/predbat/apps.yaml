@@ -132,6 +132,10 @@ pred_bat:
   battery_min_soc:
     - 20
 
+  # The reserve SoC is the lower limit target % to discharge the battery down to.
+  reserve:
+    - number.custom_goodwe_reserve_soc
+
   # Temperature of the battery in degrees C
   battery_temperature:
     - sensor.battery_temperature
@@ -295,7 +299,7 @@ pred_bat:
     has_discharge_enable_time: False
     has_target_soc: True
     target_soc_used_for_discharge: False
-    has_reserve_soc: False
+    has_reserve_soc: True
     has_timed_pause: False
     time_button_press: False
     support_charge_freeze: False
