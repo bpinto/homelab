@@ -1,4 +1,19 @@
 template:
+  - number:
+      # The reserve SoC is the lower limit target % to discharge the battery down to
+      - name: "Custom Goodwe Reserve SOC"
+        unique_id: custom_goodwe_reserve_soc
+        min: 0
+        max: 100
+        step: 1
+        state: "{{ 100 - states('number.goodwe_depth_of_discharge_on_grid')|float }}"
+        set_value:
+          service: number.set_value
+          target:
+            entity_id: number.goodwe_depth_of_discharge_on_grid
+          data:
+            value: "{{ 100 - value }}"
+
   - sensor:
       # Template sensor for values of energy imported (active_power < 0)
       - name: "Custom Goodwe Energy Import"
