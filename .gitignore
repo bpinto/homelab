@@ -1,4 +1,13 @@
-cosign.key
+# Secrets and sensitive data
+secrets.yaml
+*.secret
+*.pem
+*.key
+*.crt
+
+# ESPHome
+esphome/.esphome/
+esphome/archive/
 
 # Home Assistant (in home-assistant/ folder)
 home-assistant/home-assistant.log
@@ -9,13 +18,6 @@ home-assistant/*.db-journal
 home-assistant/**/*.log
 home-assistant/*.pid
 home-assistant/.ha_run.lock
-
-# Secrets and sensitive data
-home-assistant/secrets.yaml
-home-assistant/*.secret
-home-assistant/*.pem
-home-assistant/*.key
-home-assistant/*.crt
 
 # Home Assistant directories
 home-assistant/.storage/
@@ -35,10 +37,6 @@ home-assistant/*.backup
 # Known devices
 home-assistant/known_devices.yaml
 home-assistant/*.conf
-
-# ESPHome (if using and in subfolder)
-home-assistant/esphome/.esphome/
-home-assistant/esphome/secrets.yaml
 
 # Solcast
 home-assistant/solcast_solar/
