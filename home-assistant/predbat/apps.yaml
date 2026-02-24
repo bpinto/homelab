@@ -43,9 +43,8 @@ pred_bat:
 
   # Take the average of the same day for the last 2 weeks for future load forecasting
   days_previous:
-    - 1 # Temporary use yesterday's data for forecasting until I have enough data to use the average of the last 2 weeksprevious
-    #- 7
-    #- 14
+    - 7
+    - 14
 
   # Number of hours forward to forecast, best left as-is unless you have specific reason
   forecast_hours: 48
