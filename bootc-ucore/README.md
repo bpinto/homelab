@@ -1,10 +1,14 @@
-## Installation
+## CoreOS installation
 
-There are [varying methods](https://docs.fedoraproject.org/en-US/fedora-coreos/bare-metal/) of CoreOS installation for bare metal, cloud providers, and virtualization platforms.
+Follow the [instructions](https://docs.fedoraproject.org/en-US/fedora-coreos/bare-metal/) to install CoreOS.
+
+## Custom image installation
+
+After installing CoreOS, it's time to rebase to the custom image that contains all the necessary tools and configurations for the homelab.
 
 ### Image verification
 
-These images are signed with sigstore's [cosign](https://docs.sigstore.dev/cosign/overview/). You can verify the signature by running the following command:
+These custom images are signed with sigstore's [cosign](https://docs.sigstore.dev/cosign/overview/). You can verify the image signature by running the following command:
 
 ```bash
 cosign verify --key https://github.com/bpinto/homelab/raw/main/bootc-ucore/cosign.pub ghcr.io/bpinto/homelab-ucore:latest
