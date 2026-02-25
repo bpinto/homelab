@@ -32,6 +32,7 @@ hass-user-setup: _check-hass-user
     systemctl --user enable --now podman-auto-update.timer
     systemctl --user enable --now container-homeassistant.service
     systemctl --user enable --now container-homeassistant-addon-esphome.service
+    systemctl --user enable --now container-homeassistant-addon-matter-server.service
     systemctl --user enable --now container-homeassistant-addon-predbat.service
 
 [private]

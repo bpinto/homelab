@@ -44,3 +44,6 @@ home-assistant/solcast_solar/
 
 # Predbat
 home-assistant/predbat/predbat_config.json
+
+# Matter Server
+home-assistant/matter-server/
