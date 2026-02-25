@@ -6,7 +6,7 @@
       "customType": "regex",
       "fileMatch": ["\\.service$"],
       "matchStrings": [
-        "\\s+docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>(?<prefix>slim-v|v)?[\\d.]+)\\s+"
+        "\\s+docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]*-?v?[\\d.]+)\\s+"
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://registry-1.docker.io"
@@ -15,7 +15,7 @@
       "customType": "regex",
       "fileMatch": ["\\.service$"],
       "matchStrings": [
-        "\\s+ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>(?<prefix>slim-v|v)?[\\d.]+)\\s+"
+        "\\s+ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]*-?v?[\\d.]+)\\s+"
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
@@ -25,7 +25,7 @@
     {
       "matchManagers": ["custom.regex"],
       "matchPackagePatterns": [".*"],
-      "versioning": "regex:^(?<prefix>slim-v|v)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+      "versioning": "regex:^((?<compatibility>.*)-?v?)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$"
     }
   ]
 }
