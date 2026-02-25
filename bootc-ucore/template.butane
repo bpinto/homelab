@@ -14,12 +14,34 @@ storage:
   directories:
     - path: /etc/ucore-autorebase
       mode: 0754
+  disks:
+    - device: /dev/sda
+      partitions:
+        - label: boot
+          number: 3
+          # Resize to 600 MiB
+          size_mib: 600
+          wipe_partition_entry: true
+        - label: root
+          number: 4
+          size_mib: 8192
+          resize: true
+          wipe_partition_entry: true
   files:
     - path: /etc/hostname
       mode: 0644
       overwrite: true
       contents:
         inline: ucore.homelab.bpinto.com
+  filesystems:
+    - device: /dev/disk/by-partlabel/boot
+      format: ext4
+      label: boot
+      wipe_filesystem: true
+    - device: /dev/disk/by-partlabel/root
+      format: xfs
+      label: root
+      wipe_filesystem: true
   links:
     - path: /etc/localtime
       target: /usr/share/zoneinfo/Europe/Lisbon
