@@ -6,7 +6,6 @@ RequiresMountsFor=%t/containers
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-Environment=TZ=Europe/Lisbon
 Restart=always
 RestartSec=30
 TimeoutStopSec=70
@@ -20,7 +19,10 @@ ExecStart=/usr/bin/podman run \
                           --detach \
                           --name=esphome \
                           --group-add keep-groups \
+                          --env=TZ=Europe/Lisbon \
                           --volume=/srv/hass/homelab/esphome:/config:z \
+                          --volume=/srv/hass/homelab/home-assistant/secrets.yaml:/config/home-assistant-secrets.yaml:z \
+                          --volume=/etc/localtime:/etc/localtime:ro \
                           --network=host \
                           docker.io/esphome/esphome:2026.2.1
 ExecStartPost=/usr/bin/tailscale serve --service=svc:esphome 127.0.0.1:6052

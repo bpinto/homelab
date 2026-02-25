@@ -24,8 +24,7 @@ storage:
           wipe_partition_entry: true
         - label: root
           number: 4
-          size_mib: 8192
-          resize: true
+          size_mib: 0
           wipe_partition_entry: true
   files:
     - path: /etc/hostname
