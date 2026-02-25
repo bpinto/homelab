@@ -25,7 +25,13 @@
     {
       "matchManagers": ["custom.regex"],
       "matchPackagePatterns": [".*"],
-      "versioning": "regex:^((?<compatibility>.*)-?v?)?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)?$"
+      "versioning": "semver"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["nipar44/predbat_addon"],
+      "versionCompatibility": "^(?<compatibility>.*)-(?<version>.*)$",
+      "versioning": "semver"
     }
   ]
 }
