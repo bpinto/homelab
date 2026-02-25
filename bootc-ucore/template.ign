@@ -28,6 +28,26 @@
         "mode": 492
       }
     ],
+    "disks": [
+      {
+        "device": "/dev/sda",
+        "partitions": [
+          {
+            "label": "boot",
+            "number": 3,
+            "sizeMiB": 600,
+            "wipePartitionEntry": true
+          },
+          {
+            "label": "root",
+            "number": 4,
+            "resize": true,
+            "sizeMiB": 8192,
+            "wipePartitionEntry": true
+          }
+        ]
+      }
+    ],
     "files": [
       {
         "overwrite": true,
@@ -37,6 +57,20 @@
           "source": "data:,ucore.homelab.bpinto.com"
         },
         "mode": 420
+      }
+    ],
+    "filesystems": [
+      {
+        "device": "/dev/disk/by-partlabel/boot",
+        "format": "ext4",
+        "label": "boot",
+        "wipeFilesystem": true
+      },
+      {
+        "device": "/dev/disk/by-partlabel/root",
+        "format": "xfs",
+        "label": "root",
+        "wipeFilesystem": true
       }
     ],
     "links": [
