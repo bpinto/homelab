@@ -111,7 +111,7 @@ climate:
 
     vertical_vane_select:
       name: ${name} Vertical Vane
-      disabled_by_default: false # TODO: confirm this works
+      disabled_by_default: false
 
     stage_sensor:
       name: Stage or Fan state
@@ -127,16 +127,6 @@ climate:
       name: Auto Mode
       entity_category: diagnostic
       disabled_by_default: false
-
-    # Added manually:
-    input_power_sensor:
-      name: Input Power
-      disabled_by_default: true # TODO: confirm this works
-
-    # Added manually:
-    kwh_sensor:
-      name: Energy Usage
-      disabled_by_default: true # TODO: confirm this works
 
 # below taken from https://github.com/bogorad/m5stack-m5NanoC6-esphome/blob/main/packages/generic_m5stack-nano-c6.yaml combined with https://github.com/yoziru/esphome-m5-btproxy/tree/main
 
