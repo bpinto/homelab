@@ -7,6 +7,7 @@ secrets.yaml
 
 # ESPHome
 esphome/.esphome/
+esphome/.home-assistant-secrets.yaml
 esphome/archive/
 
 # Home Assistant (in home-assistant/ folder)

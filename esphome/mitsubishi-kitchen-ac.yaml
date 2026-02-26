@@ -1,0 +1,5 @@
+substitutions:
+  name: mitsubishi-kitchen-ac
+  friendly_name: Ar Condicionado da Cozinha
+
+<<: !include packages/mitsubishi-cn105-m5nanoc6.yaml

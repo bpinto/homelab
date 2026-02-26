@@ -21,7 +21,7 @@ ExecStart=/usr/bin/podman run \
                           --group-add keep-groups \
                           --env=TZ=Europe/Lisbon \
                           --volume=/srv/hass/homelab/esphome:/config:z \
-                          --volume=/srv/hass/homelab/home-assistant/secrets.yaml:/config/home-assistant-secrets.yaml:z \
+                          --volume=/srv/hass/homelab/home-assistant/secrets.yaml:/config/.home-assistant-secrets.yaml:z \
                           --volume=/etc/localtime:/etc/localtime:ro \
                           --network=host \
                           docker.io/esphome/esphome:2026.2.1
