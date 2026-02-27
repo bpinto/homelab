@@ -1,5 +1,5 @@
 variant: fcos
-version: 1.4.0
+version: 1.5.0
 passwd:
   users:
     - name: core
@@ -19,8 +19,8 @@ storage:
       partitions:
         - label: boot
           number: 3
-          # Resize to 600 MiB
-          size_mib: 600
+          # Resize to 2048 MiB
+          size_mib: 2048
           wipe_partition_entry: true
         - label: root
           number: 4
@@ -31,7 +31,31 @@ storage:
       mode: 0644
       overwrite: true
       contents:
-        inline: ucore.homelab.bpinto.com
+        inline: bmax.homelab.bpinto.com
+    - path: /etc/NetworkManager/system-connections/wifi-iot.nmconnection
+      mode: 0600
+      contents:
+        inline: |
+          [connection]
+          id=wifi-iot
+          type=wifi
+          autoconnect=true
+          interface-name=wlp2s0
+
+          [wifi]
+          mode=infrastructure
+          ssid=<SSID> # UPDATE THIS
+
+          [wifi-security]
+          auth-alg=open
+          key-mgmt=wpa-psk
+          psk=<YOUR_WIFI_PASSWORD> #UPDATE THIS
+
+          [ipv4]
+          method=auto
+
+          [ipv6]
+          method=auto
   filesystems:
     - device: /dev/disk/by-partlabel/boot
       format: ext4

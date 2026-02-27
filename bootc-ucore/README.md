@@ -16,7 +16,7 @@ cosign verify --key https://github.com/bpinto/homelab/raw/main/bootc-ucore/cosig
 
 ### Ignition file
 
-1. Download the [ignition template](https://github.com/bpinto/homelab/raw/main/bootc-ucore/template.ign) and update the SSH keys.
+1. Download the [ignition template](https://github.com/bpinto/homelab/raw/main/bootc-ucore/template.ign) and update it accordingly (e.g. SSH keys, network configuration, etc.).
 2. Host the file on a web server or USB drive accessible during installation.
 3. Use the ignition file during CoreOS installation to automatically rebase to `ghcr.io/bpinto/homelab-ucore:latest` on first boot.
 
