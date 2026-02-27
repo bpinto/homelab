@@ -24,12 +24,6 @@ external_components:
 esphome:
   name: ${name} # Do not use underscores, which are not fully compatible with mDNS
   friendly_name: ${friendly_name}
-  on_boot:
-    priority: 200
-    then:
-      - delay: 30s
-      - light.turn_off:
-          id: rgb_led
 
 esp32:
   board: esp32-c6-devkitc-1
@@ -97,7 +91,7 @@ climate:
     # receive an update in the specified time range (highly recommended if using remote temperature updates).
     remote_temperature_timeout: 30min
 
-    update_interval: 4s # shouldn't be less than 1 second
+    update_interval: 10s # shouldn't be less than 1 second
     debounce_delay: 100ms # delay to prevent bouncing
 
     ##
@@ -111,7 +105,7 @@ climate:
 
     vertical_vane_select:
       name: ${name} Vertical Vane
-      disabled_by_default: false # TODO: confirm this works
+      disabled_by_default: false
 
     stage_sensor:
       name: Stage or Fan state
@@ -128,82 +122,13 @@ climate:
       entity_category: diagnostic
       disabled_by_default: false
 
-    # Added manually:
-    input_power_sensor:
-      name: Input Power
-      disabled_by_default: true # TODO: confirm this works
-
-    # Added manually:
-    kwh_sensor:
-      name: Energy Usage
-      disabled_by_default: true # TODO: confirm this works
-
 # below taken from https://github.com/bogorad/m5stack-m5NanoC6-esphome/blob/main/packages/generic_m5stack-nano-c6.yaml combined with https://github.com/yoziru/esphome-m5-btproxy/tree/main
-
-### IR transmitter stopped working 2025/02
-# remote_transmitter:
-#   pin: GPIO3
-#   # Infrared remotes use a 50% carrier signal
-#   carrier_duty_percent: 50%
-#   # rmt_channel: 1
-
-# Configuration of M5Stack NanoC6 onboard button
-binary_sensor:
-  - platform: status
-    name: Online
-    id: ink_ha_connected
-
-  - platform: gpio
-    name: Button
-    entity_category: diagnostic
-    pin:
-      number: GPIO9
-      inverted: true
-      mode:
-        input: true
-        pullup: true
-    filters:
-      - delayed_off: 10ms
-    on_press:
-      then:
-        - logger.log: Button Pressed
 
 button:
   # Create a button to restart the unit from HomeAssistant. Rarely needed, but can be handy.
   - platform: restart
     icon: mdi:power-cycle
     name: "Restart ${friendly_name}"
-
-# This LED is enclosed within the AC unit so it's normally not visible,
-# but it can be enabled and used for debugging if needed.
-#
-# Additionally, the light is turned on during boot and then turned off
-# after a 30s delay, to provide a visual indication of the boot process.
-light:
-  - platform: esp32_rmt_led_strip
-    rgb_order: GRB
-    pin: GPIO20
-    num_leds: 1
-    # rmt_channel: 0 ### this stopped working 2025/02
-    chipset: WS2812
-    is_rgbw: true
-    restore_mode: ALWAYS_ON # light is on during boot. Will be turned off after 30s delay
-    disabled_by_default: true
-    id: rgb_led
-    name: "Light"
-    icon: "mdi:led-outline"
-    power_supply: rgbpwr
-    effects:
-      - random:
-      - flicker:
-      - addressable_rainbow:
-
-power_supply:
-  - id: "rgbpwr"
-    enable_on_boot: true
-    pin: GPIO19
-    enable_time: 10ms
-    keep_on_time: 10ms
 
 text_sensor:
   #- platform: wifi_info
@@ -266,14 +191,6 @@ sensor:
   - platform: internal_temperature
     name: "ESP Temperature"
     id: sys_esp_temperature
-
-switch:
-  # This LED is enclosed within the AC unit so it's normally not visible,
-  # but it can be enabled and used for debugging if needed.
-  - platform: gpio
-    pin: GPIO7
-    disabled_by_default: true
-    name: "on board LED"
 
 # Sync time with Home Assistant.
 time:
