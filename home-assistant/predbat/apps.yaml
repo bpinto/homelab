@@ -282,6 +282,23 @@ pred_bat:
     100: 0.43
 
   ##
+  # Temperature
+  ##
+
+  # Enable temperature forecasts (recommended for ML load prediction)
+  temperature_enable: true
+
+  ##
+  # Machine Learning (ML) load prediction
+  ##
+
+  # Enable ML load prediction
+  load_ml_enable: True
+
+  # Use the output data in Predbat (can be False to explore the use without using the data)
+  load_ml_source: True
+
+  ##
   # Inverter
   ##
 
