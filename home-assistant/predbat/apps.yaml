@@ -187,7 +187,7 @@ pred_bat:
   plan_interval_minutes: 15
 
   # Daily standing charge in euros, can be set to a sensor or manually entered (e.g. 0.50 is 50c)
-  metric_standing_charge: 0
+  metric_standing_charge: 0.4236
 
   # Electricity price in euros per kWh for each time interval
   metric_octopus_import: "sensor.custom_predbat_current_buy_electricity_price_raw"
