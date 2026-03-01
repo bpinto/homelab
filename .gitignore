@@ -5,11 +5,6 @@ secrets.yaml
 *.key
 *.crt
 
-# ESPHome
-esphome/.esphome/
-esphome/.home-assistant-secrets.yaml
-esphome/archive/
-
 # Home Assistant (in home-assistant/ folder)
 home-assistant/home-assistant.log
 home-assistant/home-assistant.log.*
@@ -39,11 +34,19 @@ home-assistant/*.backup
 home-assistant/known_devices.yaml
 home-assistant/*.conf
 
+# ESPHome
+esphome/.esphome/
+esphome/.home-assistant-secrets.yaml
+esphome/archive/
+
 # Solcast
 home-assistant/solcast_solar/
+
+# Matter Server
+home-assistant/matter-server/
 
 # Predbat
 home-assistant/predbat/predbat_config.json
 
-# Matter Server
-home-assistant/matter-server/
+# Tunet
+tunet/tunet.env

@@ -1,0 +1,36 @@
+[Unit]
+Description=Tunet Container
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=%t/containers
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=/srv/hass/homelab/tunet/tunet.env
+Restart=always
+RestartSec=30
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/%n.ctr-id
+ExecStart=/usr/bin/podman run \
+                          --cidfile=%t/%n.ctr-id \
+                          --cgroups=no-conmon \
+                          --rm \
+                          --sdnotify=conmon \
+                          --replace \
+                          --detach \
+                          --name=tunet \
+                          --env NODE_ENV=production \
+                          --env DATA_DIR=/app/data \
+                          --env TUNET_ENCRYPTION_MODE=enc_only \
+                          --env TUNET_DATA_KEY \
+                          --publish=3002:3002 \
+                          --volume=/srv/hass/homelab/tunet:/app/data:z \
+                          ghcr.io/oyvhov/tunet:1.10.0
+ExecStartPost=/usr/bin/tailscale serve --service=svc:tunet 127.0.0.1:3002
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
+ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target
