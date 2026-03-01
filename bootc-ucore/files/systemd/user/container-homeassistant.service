@@ -14,13 +14,18 @@ Environment=PODMAN_SYSTEMD_UNIT=%n
 Environment=TZ=Europe/Lisbon
 Restart=always
 RestartSec=30
+TimeoutStartSec=90
 TimeoutStopSec=70
 ExecStartPre=/bin/rm -f %t/%n.ctr-id
 ExecStart=/usr/bin/podman run \
                           --cidfile=%t/%n.ctr-id \
                           --cgroups=no-conmon \
                           --rm \
-                          --sdnotify=conmon \
+                          --sdnotify=healthy \
+                          --health-cmd="curl -f http://127.0.0.1:8123/manifest.json || exit 1" \
+                          --health-interval=10s \
+                          --health-retries=5 \
+                          --health-start-period=30s \
                           --replace \
                           --detach \
                           --name=homeassistant \
