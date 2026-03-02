@@ -99,12 +99,12 @@ climate:
     ##
 
     compressor_frequency_sensor:
-      name: ${name} Compressor Frequency
+      name: Compressor Frequency
       entity_category: diagnostic
       disabled_by_default: false
 
     vertical_vane_select:
-      name: ${name} Vertical Vane
+      name: Vertical Vane
       disabled_by_default: false
 
     stage_sensor:
