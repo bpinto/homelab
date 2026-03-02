@@ -1,0 +1,52 @@
+# Energy Saving Package
+
+script:
+  custom_turn_off_optional_and_energy_hog_devices:
+    alias: "Custom Turn Off Optional and Energy Hog Devices"
+    sequence:
+      - variables:
+          # Get entities that have BOTH labels
+          labeled_entities: >
+            {% set optional = label_entities('optional') %}
+            {% set energy_hog = label_entities('energy_hog') %}
+            {{ optional | select('in', energy_hog) | list }}
+          # Get entities that are currently on
+          devices_to_turn_off: >
+            {% set off_states = ['off', 'idle', 'unavailable', 'unknown'] %}
+            {{ labeled_entities 
+               | reject('is_state', off_states) 
+               | list }}
+
+      - if:
+          - condition: template
+            value_template: "{{ devices_to_turn_off | length > 0 }}"
+        then:
+          - service: homeassistant.turn_off
+            target:
+              entity_id: "{{ devices_to_turn_off }}"
+
+          - service: notify.notify
+            data:
+              title: "Custom Energy Saving Mode"
+              message: "Turned off {{ devices_to_turn_off | length }} device(s)"
+
+input_boolean:
+  custom_guests_present:
+    name: Custom Guests Present
+    icon: mdi:account-multiple
+
+automation:
+  - id: custom_energy_saving_6pm_dynamic
+    alias: "Custom Energy Saving - 6PM Auto Shutdown"
+    description: "Dynamically turn off optional and energy hog devices at 6PM if no guests present"
+    trigger:
+      - platform: time
+        at: "18:00:00"
+    condition:
+      - condition: state
+        entity_id: input_boolean.custom_guests_present
+        state: "off"
+    action:
+      - service: script.turn_on
+        target:
+          entity_id: script.custom_turn_off_optional_and_energy_hog_devices
