@@ -19,10 +19,6 @@ template:
       #   end: "2026-02-19T00:15:00+00:00",
       #   value: 0.04359
       #
-      # ---
-      #
-      # Note: Due to some bug in the PT energy price tracker integration, the active sensors are not
-      # reliably working, so I'm hard-coding the provider name here.
       - name: "Custom Predbat Current Buy Electricity Price Raw"
         unique_id: custom_predbat_current_buy_electricity_price_raw
         state: "{{ states('sensor.active_provider_all_prices') }}"
@@ -31,7 +27,7 @@ template:
         unit_of_measurement: c/kWh
         attributes:
           raw_today: >
-            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') %}
+            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') or [] %}
             {% set ns = namespace(output=[]) %}
             {% for price in prices %}
               {% set start_dt = price.datetime | as_datetime %}
@@ -53,7 +49,7 @@ template:
             {% endfor %}
             {{ ns.output | sort(attribute='start') }}
           raw_tomorrow: >
-            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') %}
+            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') or [] %}
             {% set ns = namespace(output=[]) %}
             {% for price in prices %}
               {% set start_dt = price.datetime | as_datetime %}
