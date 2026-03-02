@@ -25,13 +25,13 @@ template:
       # reliably working, so I'm hard-coding the provider name here.
       - name: "Custom Predbat Current Buy Electricity Price Raw"
         unique_id: custom_predbat_current_buy_electricity_price_raw
-        state: "{{ states('sensor.g9_smart_dynamic_tri_horario_ciclo_diario_all_prices') }}"
+        state: "{{ states('sensor.active_provider_all_prices') }}"
         icon: mdi:cash-multiple
         state_class: measurement
         unit_of_measurement: c/kWh
         attributes:
           raw_today: >
-            {% set prices = state_attr('sensor.g9_smart_dynamic_tri_horario_ciclo_diario_all_prices', 'prices') %}
+            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') %}
             {% set ns = namespace(output=[]) %}
             {% for price in prices %}
               {% set start_dt = price.datetime | as_datetime %}
@@ -53,7 +53,7 @@ template:
             {% endfor %}
             {{ ns.output | sort(attribute='start') }}
           raw_tomorrow: >
-            {% set prices = state_attr('sensor.g9_smart_dynamic_tri_horario_ciclo_diario_all_prices', 'prices') %}
+            {% set prices = state_attr('sensor.active_provider_all_prices', 'prices') %}
             {% set ns = namespace(output=[]) %}
             {% for price in prices %}
               {% set start_dt = price.datetime | as_datetime %}
