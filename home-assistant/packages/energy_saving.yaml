@@ -12,9 +12,11 @@ script:
             {{ optional | select('in', energy_hog) | list }}
           # Get entities that are currently on
           devices_to_turn_off: >
-            {% set off_states = ['off', 'idle', 'unavailable', 'unknown'] %}
             {{ labeled_entities 
-               | reject('is_state', off_states) 
+               | reject('is_state', 'off')
+               | reject('is_state', 'idle')
+               | reject('is_state', 'unavailable')
+               | reject('is_state', 'unknown')
                | list }}
 
       - if:
