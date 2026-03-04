@@ -1,9 +1,6 @@
 tailscale-root-setup AUTH_TOKEN:
     sudo systemctl enable --now tailscaled.service
 
-    # Allow the Tailscale client to be managed by the "hass" user
-    sudo tailscale set --operator=hass
-
     # Expose web servers to the Tailscale network by adding the
     # HTTP and HTTPS services to the DMZ zone.
     sudo firewall-cmd --add-service=http --zone=dmz
@@ -19,3 +16,6 @@ tailscale-root-setup AUTH_TOKEN:
     # Run the Tailscale client with the provided authentication key and
     # advertise this node as an exit node on the Tailscale network.
     sudo tailscale up --auth-key={{ AUTH_TOKEN }} --advertise-exit-node
+
+    # Allow the Tailscale client to be managed by the "hass" user
+    sudo tailscale set --operator=hass

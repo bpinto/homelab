@@ -1,5 +1,8 @@
 ## Home Assistant configuration
 
+> [!IMPORTANT]
+> Configuring Home Assistant requires that the [Tailscale](../README.md#tailscale) network is up and running.
+
 ### Creating a fine-grained Personal Access Token
 
 1. Navigate to [https://github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)

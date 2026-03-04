@@ -1,6 +1,6 @@
 {
   "ignition": {
-    "version": "3.3.0"
+    "version": "3.4.0"
   },
   "passwd": {
     "users": [
@@ -35,7 +35,7 @@
           {
             "label": "boot",
             "number": 3,
-            "sizeMiB": 600,
+            "sizeMiB": 2048,
             "wipePartitionEntry": true
           },
           {
@@ -53,9 +53,17 @@
         "path": "/etc/hostname",
         "contents": {
           "compression": "",
-          "source": "data:,ucore.homelab.bpinto.com"
+          "source": "data:,bmax.homelab.bpinto.com"
         },
         "mode": 420
+      },
+      {
+        "path": "/etc/NetworkManager/system-connections/wifi-iot.nmconnection",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/1SPTWvDMAxA7/oVgZ0NY4ydqkGhG8uppW4po4RiHKUVqT+w5YX8++Gtlxz1eHpCZxu8JyscfAfc48QDKw4CMkf6m8AUCQ8LJRUC9kJpMJaUN45wuseX/AxwrnYHLvSE7IdksqRipSSCnLnHldbt5r15ao67zfrw0Ry+Wv3YUplsSSxzV6/dlLlfMUTyMNKs3NUJTtGomEeIecTV9/a4v5zaz/ayW2t92u5rdlnl+PPagSO5hR7rB//sbcl+AwAA//8WKGYl/gAAAA=="
+        },
+        "mode": 384
       }
     ],
     "filesystems": [
