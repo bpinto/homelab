@@ -34,7 +34,7 @@ ExecStart=/usr/bin/podman run \
                           --volume=/run/dbus:/run/dbus:ro \
                           --volume=/srv/hass/homelab/home-assistant:/config:z \
                           --network=host \
-                          ghcr.io/home-assistant/home-assistant:2026.2.3
+                          ghcr.io/home-assistant/home-assistant:2026.3.0
 ExecStartPost=/usr/bin/tailscale serve --service=svc:home-assistant 127.0.0.1:8123
 ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
 ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
