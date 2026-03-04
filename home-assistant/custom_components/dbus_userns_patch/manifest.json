@@ -1,0 +1,6 @@
+{
+  "domain": "dbus_userns_patch",
+  "integration_type": "system",
+  "name": "DBus User Namespace Patch",
+  "version": "1"
+}
