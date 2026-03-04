@@ -1,0 +1,9 @@
+automation:
+  - alias: Restart Portuguese Energy Price Tracker sensor integration after boot
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: homeassistant.reload_config_entry
+        data:
+          entry_id: 01KJG3C7YMK9B65944F2SYGDPQ
