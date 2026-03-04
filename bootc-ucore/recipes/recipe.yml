@@ -20,6 +20,7 @@ modules:
   - type: dnf
     install:
       packages:
+        - avahi-daemon
         - bluez
         - neovim
 
@@ -34,5 +35,6 @@ modules:
     validate: true
     install: true
     include:
+      - avahi.just
       - home-assistant.just
       - tailscale.just
