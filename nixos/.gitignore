@@ -1,0 +1,11 @@
+# Nix build outputs
+result
+result-*
+
+# Backup files
+backup.tar.gz
+*.backup
+
+# Secret files (never commit actual secrets!)
+secrets/*.age
+!secrets/secrets.nix
