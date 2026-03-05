@@ -3,9 +3,10 @@
 # Connectivity info for Linux VM
 NIXADDR ?= unset
 NIXPORT ?= 22
-NIXNAME ?= bare # Options: vm-aarch64, bare
-# Default user: homelab for bare, homelab-vm for vm* (override by exporting NIXUSER)
-NIXUSER ?= $(shell if echo "$(NIXNAME)" | grep -q '^vm'; then echo homelab-vm; else echo homelab; fi)
+NIXUSER ?= hass
+
+# The name of the nixosConfiguration in the flake
+NIXNAME ?= vm-aarch64 # Options: bare-aarch64, bare-x86_64, vm-aarch64, vm-x86_64
 
 # Get the path to this Makefile and directory
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
@@ -13,7 +14,26 @@ MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 # SSH options for VM access (bootstrap-focused)
 SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
-.PHONY: help
+# Disk configuration
+DISK      ?= /dev/sda
+BOOT_SIZE ?= 512MiB
+SWAP_SIZE ?= 8GiB
+
+# Partition labels
+BOOT_LABEL := boot
+SWAP_LABEL := swap
+ROOT_LABEL := nixos
+
+# Partition paths (by-label for reliability)
+BOOT_PART := /dev/disk/by-label/$(BOOT_LABEL)
+SWAP_PART := /dev/disk/by-label/$(SWAP_LABEL)
+ROOT_PART := /dev/disk/by-label/$(ROOT_LABEL)
+
+# Derive partition prefix: /dev/sda -> /dev/sda, /dev/nvme0n1 -> /dev/nvme0n1p
+PART_PREFIX := $(shell echo $(DISK) | grep -q 'nvme\|mmcblk' && echo "$(DISK)p" || echo "$(DISK)")
+
+.PHONY: help switch test vm/format vm/partition vm/mount
+
 help: ## Show this help message
 	@echo "Homelab NixOS Configuration"
 	@echo ""
@@ -24,7 +44,6 @@ help: ## Show this help message
 	@echo "VM Management (run from macOS host):"
 	@echo "  make vm/copy         - Copy config files to VM"
 	@echo "  make vm/switch       - Apply configuration in VM"
-	@echo "  make vm/secrets      - Copy SSH/GPG keys to VM"
 	@echo ""
 	@echo "Local Operations (run inside VM or on bare metal):"
 	@echo "  make switch          - Apply configuration changes"
@@ -33,62 +52,63 @@ help: ## Show this help message
 	@echo "Required variables for VM operations:"
 	@echo "  NIXADDR=<VM IP>      - VM IP address (e.g., 192.168.58.130)"
 	@echo "  NIXNAME=<config>     - Configuration name (default: bare)"
-	@echo "  NIXUSER=<user>       - Username (default: 'homelab' for bare, 'homelab-vm' for vm)"
 
-.PHONY: switch
 switch: ## Apply configuration (run inside VM or bare metal)
-	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --flake ".#${NIXNAME}"
+	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --flake ".#$(NIXNAME)"
 
-.PHONY: test
 test: ## Test configuration without activating
 	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild test --flake ".#$(NIXNAME)"
 
-# Backup secrets so that we can transfer them to new machines via
-# sneakernet or other means.
-.PHONY: secrets/backup
-secrets/backup:
-	tar -czvf $(MAKEFILE_DIR)/backup.tar.gz \
-		-C $(HOME) \
-		--exclude='.gnupg/.#*' \
-		--exclude='.gnupg/S.*' \
-		--exclude='.gnupg/*.conf' \
-		--exclude='.ssh/environment' \
-		.ssh/ \
-		.gnupg
-
-.PHONY: secrets/restore
-secrets/restore:
-	if [ ! -f $(MAKEFILE_DIR)/backup.tar.gz ]; then \
-		echo "Error: backup.tar.gz not found in $(MAKEFILE_DIR)"; \
-		exit 1; \
-	fi
-	echo "Restoring SSH keys and GPG keyring from backup..."
-	mkdir -p $(HOME)/.ssh $(HOME)/.gnupg
-	tar -xzvf $(MAKEFILE_DIR)/backup.tar.gz -C $(HOME)
-	chmod 700 $(HOME)/.ssh $(HOME)/.gnupg
-	chmod 600 $(HOME)/.ssh/* || true
-	chmod 700 $(HOME)/.gnupg/* || true
-
 # bootstrap a brand new VM. The VM should have NixOS ISO on the CD drive
 # and the root password set to "root". This will install NixOS.
+vm/partition:
+	@if [ "$(NIXADDR)" = "unset" ]; then \
+		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/partition"; \
+		exit 1; \
+	fi
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
+		sgdisk --zap-all $(DISK); \
+		sgdisk \
+			--new=1:0:+$(BOOT_SIZE)     --typecode=1:ef00 --change-name=1:$(BOOT_LABEL) \
+			--new=2:0:+$(SWAP_SIZE)     --typecode=2:8200 --change-name=2:$(SWAP_LABEL) \
+			--new=3:0:0                 --typecode=3:8300 --change-name=3:$(ROOT_LABEL) \
+			$(DISK); \
+		partprobe $(DISK); \
+		udevadm settle; \
+	"
+
+vm/format:
+	@if [ "$(NIXADDR)" = "unset" ]; then \
+		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/format"; \
+		exit 1; \
+	fi
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
+		mkfs.fat  -F32 -n $(BOOT_LABEL) $(PART_PREFIX)1; \
+		mkswap    -L   $(SWAP_LABEL)    $(PART_PREFIX)2; \
+		mkfs.ext4 -L   $(ROOT_LABEL)    $(PART_PREFIX)3; \
+	"
+
+vm/mount:
+	@if [ "$(NIXADDR)" = "unset" ]; then \
+		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/mount"; \
+		exit 1; \
+	fi
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
+		mount $(ROOT_PART)              /mnt; \
+		mkdir -p                        /mnt/boot; \
+		mount $(BOOT_PART)              /mnt/boot; \
+		swapon $(SWAP_PART); \
+	"
+
 vm/bootstrap0:
 	@if [ "$(NIXADDR)" = "unset" ]; then \
 		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/bootstrap0"; \
 		exit 1; \
 	fi
+	NIXUSER=root $(MAKE) vm/partition
+	NIXUSER=root $(MAKE) vm/format
+	NIXUSER=root $(MAKE) vm/mount
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) " \
-		parted /dev/sda -- mklabel gpt; \
-		parted /dev/sda -- set 1 esp on; \
-		parted /dev/sda -- mkpart primary 512MB -8GB; \
-		parted /dev/sda -- mkpart primary linux-swap -8GB 100\%; \
-		sleep 1; \
-		mkfs.fat -F 32 -n boot /dev/sda1; \
-		mkfs.ext4 -L nixos /dev/sda2; \
-		mkswap -L swap /dev/sda3; \
-		sleep 1; \
-		mount /dev/disk/by-label/nixos /mnt; \
-		mkdir -p /mnt/boot; \
-		mount /dev/disk/by-label/boot /mnt/boot; \
 		nixos-generate-config --root /mnt; \
 		sed --in-place '/system\.stateVersion = .*/a \
 			services.openssh.enable = true;\n \
@@ -99,8 +119,7 @@ vm/bootstrap0:
 		nixos-install --no-root-passwd && reboot; \
 	"
 
-# after bootstrap0, run this to finalize. After this, do everything else
-# in the VM unless secrets change.
+# after bootstrap0, run this to finalize. After this, do everything else in the VM
 vm/bootstrap:
 	@if [ "$(NIXADDR)" = "unset" ]; then \
 		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/bootstrap"; \
@@ -108,31 +127,8 @@ vm/bootstrap:
 	fi
 	NIXUSER=root $(MAKE) vm/copy
 	NIXUSER=root $(MAKE) vm/switch
-	$(MAKE) vm/secrets
 	@echo "Bootstrap complete! VM will reboot..."
-	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) "sudo reboot"
-
-# copy our secrets into the VM
-vm/secrets:
-	@if [ "$(NIXADDR)" = "unset" ]; then \
-		echo "Error: NIXADDR is not set. Usage: NIXADDR=<ip> make vm/secrets"; \
-		exit 1; \
-	fi
-	@echo "Copying secrets to VM..."
-	@# GPG keyring
-	@if [ -d "$(HOME)/.gnupg" ]; then \
-		rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
-			--exclude='.#*' \
-			--exclude='S.*' \
-			--exclude='*.conf' \
-			$(HOME)/.gnupg/ $(NIXUSER)@$(NIXADDR):~/.gnupg; \
-	fi
-	@# SSH keys
-	@if [ -d "$(HOME)/.ssh" ]; then \
-		rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
-			--exclude='environment' \
-			$(HOME)/.ssh/ $(NIXUSER)@$(NIXADDR):~/.ssh; \
-	fi
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) "sudo reboot"
 
 # copy the Nix configurations into the VM.
 vm/copy:
@@ -143,8 +139,6 @@ vm/copy:
 	rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
 		--exclude='vendor/' \
 		--exclude='.git/' \
-		--exclude='.git-crypt/' \
-		--exclude='.jj/' \
 		--exclude='iso/' \
 		--rsync-path="sudo rsync" \
 		$(MAKEFILE_DIR)/ $(NIXUSER)@$(NIXADDR):/nix-config
@@ -158,10 +152,9 @@ vm/switch:
 	fi
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		if [ ! -d /nix-config ]; then echo '/nix-config not found on remote; run vm/copy first'; exit 1; fi; \
-		sudo NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --flake \"/nix-config#${NIXNAME}\"; \
+		sudo NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild \
+			--option extra-substituters https://install.determinate.systems \
+			--option extra-trusted-public-keys cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM= \
+			--flake \"/nix-config#$(NIXNAME)\" \
+			switch; \
 	"
-
-# Build a WSL installer
-.PHONY: wsl
-wsl:
-	 nix build ".#nixosConfigurations.wsl.config.system.build.installer"
