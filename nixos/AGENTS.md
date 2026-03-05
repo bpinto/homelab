@@ -144,7 +144,3 @@ nix flake check           # Syntax/structure
 nix build .#nixosConfigurations.vm.config.system.build.toplevel  # VM builds
 # If both pass, ready to deploy
 ```
-
----
-
-**Current State**: Empty directory. Start with Phase 1 (foundation files) when requested.

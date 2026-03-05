@@ -23,11 +23,13 @@ homelab/
 ## Critical Rules for Agents
 
 ### 1. Project Isolation
+
 - Each subdirectory is an **independent project** with its own tooling
 - **Never make changes across multiple projects** unless explicitly requested
 - Changes to one project must not break others
 
 ### 2. Read Before Acting
+
 **Before making any changes:**
 
 1. Identify which project(s) are affected
@@ -43,6 +45,7 @@ homelab/
 Format: `<type>[optional scope]: <description>`
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -54,9 +57,11 @@ Format: `<type>[optional scope]: <description>`
 - `ci`: CI/CD changes
 
 **Scopes** (use project names):
+
 - `nixos`, `bootc-ucore`, `home-assistant`, `esphome`
 
 **Examples:**
+
 ```
 feat(nixos): add tailscale service module
 fix(home-assistant): correct automation trigger syntax
@@ -66,6 +71,7 @@ refactor(nixos): simplify module imports
 ```
 
 **Breaking changes:**
+
 ```
 feat(nixos)!: switch to flakes-based configuration
 
@@ -83,6 +89,7 @@ BREAKING CHANGE: legacy configuration.nix no longer supported
 ### 5. Testing Requirements
 
 Before proposing changes:
+
 - Verify syntax/format is correct
 - Check that files compile/validate (if possible)
 - Suggest testing steps for the user
@@ -91,27 +98,30 @@ Before proposing changes:
 ## Project-Specific Guidance
 
 ### NixOS (`nixos/`)
+
 **⚠️ MUST READ: [nixos/AGENTS.md](nixos/AGENTS.md)**
 
 - Tool: Nix flakes with Determinate Systems Nix
 - Environments: VMware Fusion VM + bare metal
 - Patterns: Modular, reusable configuration with `machines/`, `modules/`, `home/` structure
-- Structure reference: [nixos/STRUCTURE.md](nixos/STRUCTURE.md)
 - Always test in VM first
 
 ### bootc-ucore (`bootc-ucore/`)
+
 **READ: [bootc-ucore/README.md](bootc-ucore/README.md)**
 
 - Tool: Containerfile + Fedora CoreOS
 - Immutable, container-native OS
 
 ### Home Assistant (`home-assistant/`)
+
 **READ: [home-assistant/README.md](home-assistant/README.md)**
 
 - Format: YAML configuration
 - Contains: blueprints, custom_components, packages
 
 ### ESPHome (`esphome/`)
+
 - Format: YAML device definitions
 - Target: ESP32/ESP8266 firmware
 
@@ -157,6 +167,7 @@ Before proposing changes:
 ## When to Ask for Clarification
 
 Ask the user when:
+
 - Requirements are ambiguous
 - Changes would affect multiple projects
 - Destructive or breaking changes are needed
@@ -167,6 +178,7 @@ Ask the user when:
 ## Multi-Project Changes
 
 If a request affects multiple projects:
+
 1. Handle each project separately
 2. Create separate commits per project (with appropriate scopes)
 3. Explain dependencies between changes
@@ -174,12 +186,12 @@ If a request affects multiple projects:
 
 ## Quick Reference
 
-| Project | Tool/Format | Agent Instructions | Key Points |
-|---------|-------------|-------------------|------------|
-| nixos/ | Nix flakes | [nixos/AGENTS.md](nixos/AGENTS.md) | Read this first! VM + bare metal |
-| bootc-ucore/ | Containerfile | [README](bootc-ucore/README.md) | Container-native OS |
-| home-assistant/ | YAML | [README](home-assistant/README.md) | Home automation configs |
-| esphome/ | YAML | N/A | IoT device firmware |
+| Project         | Tool/Format   | Agent Instructions                 | Key Points                       |
+| --------------- | ------------- | ---------------------------------- | -------------------------------- |
+| nixos/          | Nix flakes    | [nixos/AGENTS.md](nixos/AGENTS.md) | Read this first! VM + bare metal |
+| bootc-ucore/    | Containerfile | [README](bootc-ucore/README.md)    | Container-native OS              |
+| home-assistant/ | YAML          | [README](home-assistant/README.md) | Home automation configs          |
+| esphome/        | YAML          | N/A                                | IoT device firmware              |
 
 ## Repository-Wide Files
 
@@ -195,7 +207,6 @@ User: "Add a new module for Docker to NixOS config"
 
 Agent should:
 1. Read nixos/AGENTS.md completely
-2. Check nixos/STRUCTURE.md for folder organization
 3. Understand the modular structure
 4. Check existing modules for patterns
 5. Create module in appropriate location (e.g., modules/services/docker.nix)
