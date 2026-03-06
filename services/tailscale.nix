@@ -45,6 +45,8 @@
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = "10s";
     };
 
     script = ''
