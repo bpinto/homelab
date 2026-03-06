@@ -5,11 +5,10 @@ let
 in
 {
   users.users.hass = {
-    isNormalUser = true;
     description = "Home Assistant user";
-    extraGroups = [ "network" ];
-    home = "/home/hass";
-    createHome = true;
+    extraGroups = [ "network" "wheel" ];
+    hashedPasswordFile = "/nix-config/secrets/hass.password";
+    isNormalUser = true;
 
     openssh.authorizedKeys.keys = [ pubKey ];
   };

@@ -12,7 +12,7 @@ NIXNAME ?= vm-aarch64 # Options: bare-aarch64, bare-x86_64, vm-aarch64, vm-x86_6
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # SSH options for VM access (bootstrap-focused)
-SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+SSH_OPTIONS=-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 # Disk configuration
 DISK      ?= /dev/sda
@@ -128,7 +128,7 @@ vm/bootstrap:
 	NIXUSER=root $(MAKE) vm/copy
 	NIXUSER=root $(MAKE) vm/switch
 	@echo "Bootstrap complete! VM will reboot..."
-	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) "sudo reboot"
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) "sudo reboot"
 
 # copy the Nix configurations into the VM.
 vm/copy:

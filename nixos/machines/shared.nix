@@ -4,7 +4,6 @@
   # Import per-user system config
   imports = [
     ../users/hass/nixos.nix
-    ../users/root/nixos.nix
   ];
 
   # Systemd-boot configuration for UEFI systems
@@ -26,5 +25,11 @@
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
 
+  # Don't require password for sudo
+  security.sudo.wheelNeedsPassword = false;
+
   system.stateVersion = "25.11";
+
+  # Reset users and groups configuration on system activation
+  users.mutableUsers = false;
 }
