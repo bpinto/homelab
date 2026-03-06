@@ -1,5 +1,3 @@
-flakeDir: "./nixos/"
-
 builds:
   include:
     - "*.x86_64-linux.*"

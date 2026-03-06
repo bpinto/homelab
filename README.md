@@ -1,21 +1,153 @@
-# Project Overview
+# NixOS Configuration
 
-This repository contains multiple subprojects, each with its own documentation and purpose. Please refer to the individual README files for detailed information about each subproject.
+This repository contains the NixOS configuration for homelab infrastructure, designed to run in two environments:
 
-## Subprojects
+- **VM**: Testing environment on macOS host (VMware Fusion) - validates configuration before bare metal deployment
+- **Bare Metal**: Production homelab server on physical hardware
 
-- [bootc-ucore](bootc-ucore/README.md): uCore (Fedora CoreOS) boot configuration and utilities.
-- [home-assistant](home-assistant/README.md): Home automation tools and integrations.
+Other projects (bootc-ucore, home-assistant, esphome) are in subdirectories.
 
-Explore each subproject for setup instructions, usage, and contribution guidelines.
+## Setup (VM)
 
-## Tailscale
+### Prerequisites
 
-An [auth key](https://login.tailscale.com/admin/settings/keys) is required to set up Tailscale. It's recommended to create a non-reusable key and to [disable key expiry](https://tailscale.com/docs/features/access-control/key-expiry#disabling-key-expiry) after creating the key.
+- VMware Fusion
+- [NixOS Installation ISO](https://nixos.org/download.html)
+- This repository cloned on your macOS host
 
-SSH into the CoreOS system with the **core** user:
+### Create the VM
+
+Create a new VMware Fusion VM with these settings:
+
+**Basic Configuration**:
+
+- **Disk**: SATA, 50 GB minimum (adjust based on your homelab needs)
+- **CPU/Memory**: 2-4 cores, 4-8 GB RAM (adjust based on services you'll run)
+- **Network**: Shared with Mac
+- **Boot Mode**: UEFI
+
+### Initial Bootstrap
+
+Boot the VM from the NixOS ISO and open the graphical console.
+
+**1. Set root password**:
 
 ```bash
-ssh -i ~/.ssh/homelab core@IP.OF.YOUR.BOX
-blujust tailscale-root-setup TAILSCALE_AUTH_KEY
+sudo su
+passwd
+# Set password to: root
 ```
+
+**2. Verify disk device**:
+
+```bash
+ls /dev/sda
+```
+
+This should exist if you configured SATA correctly. If you see `/dev/nvme` or `/dev/vda` instead, you'll need to modify the `vm/bootstrap0` Makefile task to use the correct device paths.
+
+**3. Take a snapshot** (optional but recommended):
+Create a VM snapshot called "prebootstrap0" - useful if you need to retry.
+
+**4. Get VM IP address**:
+
+```bash
+hostname -I
+```
+
+Note the IP address (likely `192.168.58.XXX`).
+
+**5. On your macOS host**, open a terminal in this repository and set environment variables:
+
+```bash
+cd /path/to/homelab
+
+# Set VM IP address
+export NIXADDR=192.168.58.XXX
+
+# For Apple Silicon (M1/M2/M3/etc):
+export NIXNAME=vm-aarch64
+```
+
+**6. Run initial bootstrap**:
+
+```bash
+make vm/bootstrap0
+```
+
+This will:
+
+- Partition the VM disk
+- Install a minimal NixOS
+- Enable SSH access
+- Reboot the VM
+
+**7. After reboot, finalize the setup**:
+
+```bash
+make vm/bootstrap
+```
+
+This will:
+
+- Copy the full NixOS configuration to the VM
+- Apply all customizations
+- Copy SSH keys and GPG keyring (optional)
+- Reboot into the fully configured system
+
+### Post-Setup
+
+After the final reboot, you should have a fully functional NixOS server VM.
+
+**SSH into the VM**:
+
+```bash
+ssh hass@<VM-IP>
+```
+
+**Testing Configuration Changes**:
+
+1. Modify configuration files in the VM
+2. Run `make test` to test without activating
+3. Run `make switch` to apply changes
+4. Once validated in VM, deploy the same config to bare metal
+
+**Accessing Services**: Services running in the VM will be accessible at the VM's IP address on their respective ports.
+
+## Making Changes
+
+Once the VM is running:
+
+**Inside the VM** (recommended workflow):
+
+```bash
+cd /path/to/homelab
+
+# Test changes without activating
+make test
+
+# Apply changes
+make switch
+
+# Format code
+nix fmt
+
+# Update dependencies
+nix flake update
+```
+
+**From macOS host** (if you modify files on the host):
+
+```bash
+# Copy changes to VM
+make vm/copy
+
+# Apply in VM
+make vm/switch
+```
+
+## Resources
+
+- [NixOS Manual](https://nixos.org/manual/nixos/stable/)
+- [mitchellh/nixos-config](https://github.com/mitchellh/nixos-config) - Inspiration for this setup
+- [the-nix-way/nome](https://github.com/the-nix-way/nome) - Inspiration for this setup

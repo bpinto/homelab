@@ -47,3 +47,7 @@ home-assistant/predbat/predbat_config.json
 
 # Matter Server
 home-assistant/matter-server/
+
+# Nix build outputs
+result
+result-*

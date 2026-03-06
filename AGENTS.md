@@ -2,18 +2,22 @@
 
 ## Purpose
 
-This file provides instructions for AI agents working on this multi-project homelab repository. It defines repository-wide conventions, where to find project-specific guidance, and how to approach code changes safely.
+This file provides instructions for AI agents working on this homelab repository. It defines repository-wide conventions and how to approach code changes safely.
 
 ## Repository Structure
 
-This is a **multi-project repository** with independent subdirectories:
+This repository contains NixOS configuration at the root level, plus other independent projects in subdirectories:
 
 ```
 homelab/
 ├── AGENTS.md              # This file - repository-wide agent instructions
-├── README.md              # User-facing documentation
-├── nixos/                 # NixOS configuration (VM + bare metal)
-│   └── AGENTS.md          # ⚠️ READ THIS for NixOS work
+├── README.md              # User-facing and NixOS documentation
+├── flake.nix              # NixOS flake configuration (root level)
+├── flake.lock             # Nix dependency lock file
+├── Makefile               # NixOS build and deployment automation
+├── machines/              # NixOS machine configurations (VM + bare metal)
+├── users/                 # NixOS user configurations
+├── secrets/               # NixOS secrets management
 ├── bootc-ucore/           # Fedora CoreOS configuration
 ├── home-assistant/        # Home automation YAML configs
 ├── esphome/               # ESP device firmware
@@ -24,7 +28,8 @@ homelab/
 
 ### 1. Project Isolation
 
-- Each subdirectory is an **independent project** with its own tooling
+- NixOS configuration lives at the root level
+- Other projects in subdirectories (bootc-ucore, home-assistant, esphome) are independent
 - **Never make changes across multiple projects** unless explicitly requested
 - Changes to one project must not break others
 
@@ -33,8 +38,8 @@ homelab/
 **Before making any changes:**
 
 1. Identify which project(s) are affected
-2. Check for project-specific `AGENTS.md` (e.g., `nixos/AGENTS.md`)
-3. If no AGENTS.md exists, read project's `README.md`
+2. For NixOS work: Read this AGENTS.md and README.md at root level
+3. For other projects: Check for project-specific `README.md` in their subdirectory
 4. Understand existing patterns and conventions
 5. Verify changes won't affect other projects
 
@@ -97,14 +102,29 @@ Before proposing changes:
 
 ## Project-Specific Guidance
 
-### NixOS (`nixos/`)
+### NixOS (root level)
 
-**⚠️ MUST READ: [nixos/AGENTS.md](nixos/AGENTS.md)**
+**⚠️ READ: Root [AGENTS.md](AGENTS.md) and [README.md](README.md)**
 
 - Tool: Nix flakes with Determinate Systems Nix
 - Environments: VMware Fusion VM + bare metal
-- Patterns: Modular, reusable configuration with `machines/`, `modules/`, `home/` structure
+- Structure: Modular configuration with `machines/`, `users/`, `secrets/` directories at root
+- Key files: `flake.nix`, `flake.lock`, `Makefile` at root level
+- Patterns: Reusable modules, VM/bare-metal machine separation
 - Always test in VM first
+
+**Architecture:**
+- `machines/` - Machine-specific configs (vm-aarch64, vm-x86_64, bare-aarch64, bare-x86_64)
+- `users/` - Per-user system configurations
+- `secrets/` - Secret management (never commit actual secrets)
+- `flake.nix` - Defines nixosConfigurations outputs
+- `Makefile` - Provides targets for VM bootstrap, copy, switch operations
+
+**Common workflows:**
+- Test locally: `nix flake check`
+- Build config: `nix build .#nixosConfigurations.vm-aarch64.config.system.build.toplevel`
+- Apply changes: `make switch` (inside VM/bare metal) or `make vm/switch` (from host)
+- Bootstrap new VM: `make vm/bootstrap0` then `make vm/bootstrap`
 
 ### bootc-ucore (`bootc-ucore/`)
 
@@ -156,7 +176,7 @@ Before proposing changes:
 
 ## What to Check Before Committing
 
-- [ ] Read project-specific AGENTS.md (if exists)
+- [ ] Read relevant documentation (AGENTS.md, README.md)
 - [ ] Changes follow project conventions
 - [ ] No secrets committed
 - [ ] Commit message follows Conventional Commits format
@@ -186,19 +206,21 @@ If a request affects multiple projects:
 
 ## Quick Reference
 
-| Project         | Tool/Format   | Agent Instructions                 | Key Points                       |
+| Project         | Tool/Format   | Documentation                      | Key Points                       |
 | --------------- | ------------- | ---------------------------------- | -------------------------------- |
-| nixos/          | Nix flakes    | [nixos/AGENTS.md](nixos/AGENTS.md) | Read this first! VM + bare metal |
+| NixOS (root)    | Nix flakes    | [README.md](README.md)             | Read this first! VM + bare metal |
 | bootc-ucore/    | Containerfile | [README](bootc-ucore/README.md)    | Container-native OS              |
 | home-assistant/ | YAML          | [README](home-assistant/README.md) | Home automation configs          |
 | esphome/        | YAML          | N/A                                | IoT device firmware              |
 
 ## Repository-Wide Files
 
-- `.gitignore` - Check before committing files
+- `.gitignore` - Check before committing files (includes NixOS and other project ignores)
 - `renovate.json` - Dependency automation config
 - `.github/workflows/` - CI/CD pipelines
-- `README.md` - User-facing documentation (update when adding features)
+- `README.md` - Main documentation (covers NixOS setup and usage)
+- `flake.nix` / `flake.lock` - NixOS configuration entry point
+- `Makefile` - NixOS automation targets
 
 ## Example Agent Workflow
 
@@ -206,14 +228,14 @@ If a request affects multiple projects:
 User: "Add a new module for Docker to NixOS config"
 
 Agent should:
-1. Read nixos/AGENTS.md completely
-3. Understand the modular structure
-4. Check existing modules for patterns
-5. Create module in appropriate location (e.g., modules/services/docker.nix)
-6. Follow Nix module conventions
-7. Make changes
-8. Commit with: "feat(nixos): add docker service module"
-9. Explain changes and suggest: "nix flake check" and "test in VM first"
+1. Read root AGENTS.md and README.md
+2. Understand the modular structure (machines/, users/)
+3. Check existing files for patterns
+4. Determine where to add the module (e.g., machines/shared.nix or a new module file)
+5. Follow Nix module conventions
+6. Make changes
+7. Commit with: "feat(nixos): add docker service module"
+8. Explain changes and suggest: "nix flake check" and "test in VM first"
 ```
 
 ---
