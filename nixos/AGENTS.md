@@ -21,7 +21,6 @@ Structure (important files and layout):
 nixos/
 ├── flake.nix              # Flake entrypoint; defines nixosConfigurations keys
 ├── flake.lock             # Commit this
-├── lib/                   # helper functions (mk-system.nix)
 ├── machines/
 │   ├── shared.nix         # Shared config imported by machine outputs
 │   ├── vm-aarch64/        # VM aarch64 specific files
@@ -39,9 +38,9 @@ Note: flake.nix exposes nixosConfigurations with keys: bare-aarch64, bare-x86_64
 
 ## Important Patterns
 
-- The project uses a small mk-system helper (lib/mk-system.nix) to wrap Determinate Systems' nixosModule and produce the nixosConfigurations. See lib/mk-system.nix.
-- Namespace service options under a project-specific prefix (e.g., services.homelab.*) to avoid collisions.
-- Keep machine-specific overrides in the machine directories (vm-*/ bare-*); put shared configuration in machines/shared.nix.
+- flake.nix composes the nixosConfigurations using pkgs.lib.nixosSystem. Inspect flake.nix to see how outputs are produced.
+- Namespace service options under a project-specific prefix (e.g., services.homelab.\*) to avoid collisions.
+- Keep machine-specific overrides in the machine directories (vm-_/ bare-_); put shared configuration in machines/shared.nix.
 - Keep user-level system entries in users/<name>/nixos.nix and the corresponding home-manager config in users/<name>/home.nix.
 
 ## Secrets
@@ -55,24 +54,26 @@ This repo provides a Makefile with convenient targets. Preferred approach is to 
 Key Makefile targets and usage:
 
 - VM bootstrap (host -> VM iso install):
-  - NIXADDR=<VM_IP> make vm/bootstrap0   # partition, format, install minimal NixOS (root password set)
-  - NIXADDR=<VM_IP> make vm/bootstrap    # copy config and apply full configuration
+  - NIXADDR=<VM_IP> make vm/bootstrap0 # partition, format, install minimal NixOS (root password set)
+  - NIXADDR=<VM_IP> make vm/bootstrap # copy config and apply full configuration
 
 - VM management (from host):
-  - NIXADDR=<VM_IP> make vm/copy         # rsync repository into VM (/nix-config)
-  - NIXADDR=<VM_IP> make vm/switch       # run nixos-rebuild on VM using the copied config
+  - NIXADDR=<VM_IP> make vm/copy # rsync repository into VM (/nix-config)
+  - NIXADDR=<VM_IP> make vm/switch # run nixos-rebuild on VM using the copied config
 
 - Local operations (run inside VM or on bare metal):
-  - make switch          # apply configuration (uses NIXNAME variable)
-  - make test            # run nixos-rebuild test
+  - make switch # apply configuration (uses NIXNAME variable)
+  - make test # run nixos-rebuild test
 
 Makefile variables:
-- NIXADDR: remote VM address for vm/* targets
+
+- NIXADDR: remote VM address for vm/\* targets
 - NIXPORT: SSH port (default 22)
 - NIXUSER: user to connect as when copying/applying (default hass)
 - NIXNAME: the nixosConfigurations key to operate on (default in Makefile: vm-aarch64)
 
 Examples:
+
 - Build/check flake locally: nix flake check
 - Build a configuration derivation (example): nix build .#nixosConfigurations.vm-aarch64.config.system.build.toplevel
 - Apply inside target machine (from within that machine): sudo NIXPKGS_ALLOW_UNFREE=1 nixos-rebuild switch --flake .#vm-aarch64
@@ -92,13 +93,14 @@ Common services configured here include Tailscale, container runtimes (Docker/Po
 
 ## When Writing Code
 
-- Inspect lib/mk-system.nix and flake.nix to understand how outputs are composed
+- Inspect flake.nix to understand how outputs are composed
 - Follow the module pattern for services and expose an enable option
 - Keep changes minimal and document how to validate them (nix flake check, nix build, Makefile targets)
 
 ## Testing
 
 After changes:
+
 - nix flake check
 - nix build .#nixosConfigurations.<target>.config.system.build.toplevel (replace <target> with vm-aarch64, vm-x86_64, etc.)
 - Use Makefile targets (make test / make switch) for applying or testing on the machine

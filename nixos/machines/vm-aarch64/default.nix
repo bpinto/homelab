@@ -1,11 +1,6 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
 {
   # Import shared configuration
-  imports = [ ../shared.nix ];
-
-  # VM-aarch64 specific overrides
-  networking.hostName = "nixos-vm";
-
-  # Any other VM-only, aarch64-specific modules or tweaks can be added here.
+  imports = [ ../shared.nix ../vm-shared.nix ];
 }

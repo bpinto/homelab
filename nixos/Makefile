@@ -12,7 +12,7 @@ NIXNAME ?= vm-aarch64 # Options: bare-aarch64, bare-x86_64, vm-aarch64, vm-x86_6
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # SSH options for VM access (bootstrap-focused)
-SSH_OPTIONS=-o PubkeyAuthentication=no -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+SSH_OPTIONS=-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 # Disk configuration
 DISK      ?= /dev/sda
@@ -128,7 +128,7 @@ vm/bootstrap:
 	NIXUSER=root $(MAKE) vm/copy
 	NIXUSER=root $(MAKE) vm/switch
 	@echo "Bootstrap complete! VM will reboot..."
-	ssh $(SSH_OPTIONS) -p$(NIXPORT) root@$(NIXADDR) "sudo reboot"
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) "sudo reboot"
 
 # copy the Nix configurations into the VM.
 vm/copy:
@@ -153,8 +153,6 @@ vm/switch:
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
 		if [ ! -d /nix-config ]; then echo '/nix-config not found on remote; run vm/copy first'; exit 1; fi; \
 		sudo NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild \
-			--option extra-substituters https://install.determinate.systems \
-			--option extra-trusted-public-keys cache.flakehub.com-3:hJuILl5sVK4iKm86JzgdXW12Y2Hwd5G07qKtHTOcDCM= \
 			--flake \"/nix-config#$(NIXNAME)\" \
 			switch; \
 	"

@@ -10,7 +10,7 @@ This directory contains the NixOS configuration for homelab infrastructure, desi
 ### Prerequisites
 
 - VMware Fusion
-- [Determinate Systems NixOS ISO](https://github.com/DeterminateSystems/nixos-iso)
+- [NixOS Installation ISO](https://nixos.org/download.html)
 - This repository cloned on your macOS host
 
 ### Create the VM
