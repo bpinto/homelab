@@ -39,7 +39,7 @@ Note: flake.nix exposes nixosConfigurations with keys: bare-aarch64, bare-x86_64
 
 ## Important Patterns
 
-- The project uses a small mk-system helper (lib/mk-system.nix) to wrap Determinate Systems' nixosModule and produce the nixosConfigurations. See lib/mk-system.nix.
+- The project uses a small mk-system helper (lib/mk-system.nix) to import nixpkgs and produce the nixosConfigurations via pkgs.lib.nixosSystem. See lib/mk-system.nix.
 - Namespace service options under a project-specific prefix (e.g., services.homelab.*) to avoid collisions.
 - Keep machine-specific overrides in the machine directories (vm-*/ bare-*); put shared configuration in machines/shared.nix.
 - Keep user-level system entries in users/<name>/nixos.nix and the corresponding home-manager config in users/<name>/home.nix.
