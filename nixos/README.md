@@ -155,8 +155,7 @@ See [AGENTS.md](./AGENTS.md) for detailed structure and development guidelines.
 nixos/
 ├── flake.nix              # Entry point - all machine definitions
 ├── flake.lock             # Locked dependencies
-├── lib/
-│   └── mksystem.nix       # Machine builder abstraction
+├── lib/                   # Optional helper functions/modules (kept minimal)
 ├── machines/
 │   ├── shared.nix         # Configuration shared by all machines
 │   ├── vm/                # VM-specific configuration

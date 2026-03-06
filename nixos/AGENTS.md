@@ -6,7 +6,7 @@ Part of homelab multi-project repo. NixOS config for **homelab server infrastruc
 
 ## Inspiration Repositories (Local Access)
 
-- **https://github.com/mitchellh/nixos-config**: Study `lib/mksystem.nix`, machine/user separation, module patterns
+- **https://github.com/mitchellh/nixos-config**: machine/user separation, module patterns
 - **https://github.com/the-nix-way/nome**: FlakeHub inputs, overlay patterns, home-manager integration
 
 Read these repos when implementing similar patterns.
@@ -23,8 +23,6 @@ Read these repos when implementing similar patterns.
 nixos/
 ├── flake.nix              # Entry point - all machine definitions
 ├── flake.lock             # Commit this
-├── lib/
-│   └── mksystem.nix       # Machine builder (like mitchellh's)
 ├── machines/
 │   ├── shared.nix         # Config for ALL machines (90% of code)
 │   ├── vm/
@@ -50,10 +48,6 @@ nixos/
 ```
 
 ## Key Patterns
-
-### Machine Builder (lib/mksystem.nix)
-
-Pattern from mitchellh - abstracts boilerplate. Takes machine name + config, returns nixosSystem.
 
 ### Module Pattern
 
@@ -91,7 +85,7 @@ in {
 
 ## Implementation Order
 
-1. **Foundation**: flake.nix → lib/mksystem.nix → machines/shared.nix → VM config → user configs
+1. **Foundation**: flake.nix → machines/shared.nix → VM config → user configs
 2. **Services**: Add modules/services/\* as needed (tailscale, docker, etc.)
 3. **Advanced**: overlays, secrets management
 4. **Bare Metal**: Replicate VM pattern with hardware-specific tweaks
