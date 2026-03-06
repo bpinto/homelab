@@ -2,145 +2,113 @@
 
 ## Project Context
 
-Part of homelab multi-project repo. NixOS config for **homelab server infrastructure**: VM (testing on macOS) and bare metal (production). This is **not a development environment** - it's for running homelab services (containers, storage, networking, etc.). Keep all NixOS work in `nixos/`. See `../AGENTS.md` for repo-wide rules.
+This directory contains the homelab NixOS configurations (VMs for testing and bare-metal for production). Work in this directory only when the task targets NixOS configuration; refer to ../AGENTS.md for repository-wide policies.
 
 ## Inspiration Repositories (Local Access)
 
-- **https://github.com/mitchellh/nixos-config**: Study `lib/mksystem.nix`, machine/user separation, module patterns
-- **https://github.com/the-nix-way/nome**: FlakeHub inputs, overlay patterns, home-manager integration
+- https://github.com/mitchellh/nixos-config — module/user separation patterns
+- https://github.com/the-nix-way/nome — FlakeHub/overlay patterns and home-manager integration
 
-Read these repos when implementing similar patterns.
+Read those for reference, but follow the local conventions below.
 
 ## Architecture
 
-**Core Principle**: Modular, flake-based config with 95% shared between VM (testing) and bare metal (production homelab server).
+Core principle: a modular, flake-based configuration that shares the majority of code between VM and bare-metal machines.
 
-**Server Focus**: Headless operation, service hosting, remote management. No desktop environment.
-
-**Structure**:
+Structure (important files and layout):
 
 ```
 nixos/
-├── flake.nix              # Entry point - all machine definitions
+├── flake.nix              # Flake entrypoint; defines nixosConfigurations keys
 ├── flake.lock             # Commit this
-├── lib/
-│   └── mksystem.nix       # Machine builder (like mitchellh's)
+├── lib/                   # helper functions (mk-system.nix)
 ├── machines/
-│   ├── shared.nix         # Config for ALL machines (90% of code)
-│   ├── vm/
-│   │   ├── default.nix    # VM-specific imports + overrides
-│   │   └── hardware.nix   # VM hardware config
-│   └── bare/
-│       ├── default.nix    # Bare metal imports + overrides
-│       └── hardware.nix   # Real hardware config
-├── modules/
-│   ├── services/          # Service modules (tailscale, docker, etc.)
-│   ├── virtualization/    # VM-specific modules
-│   └── hardware/          # Bare metal hardware modules
-├── users/
-│   └── <username>/
-│       ├── nixos.nix      # User account (system level)
-│       └── home.nix       # Home-manager config (user env)
-├── overlays/
-│   └── default.nix        # Package overlays
-├── secrets/
-│   ├── .gitignore         # Exclude secret files
-│   └── secrets.nix        # agenix/sops config (no actual secrets)
-└── scripts/               # Helper scripts for deploy/build
+│   ├── shared.nix         # Shared config imported by machine outputs
+│   ├── vm-aarch64/        # VM aarch64 specific files
+│   ├── vm-x86_64/         # VM x86_64 specific files
+│   ├── bare-aarch64/      # Bare metal aarch64 specific files
+│   └── bare-x86_64/       # Bare metal x86_64 specific files
+├── modules/               # service, hardware, virtualization modules
+├── overlays/              # package overlays
+├── users/                 # per-user system + home-manager fragments
+├── secrets/               # public keys and secret-management helpers (.gitignored)
+└── Makefile               # helper targets for VM bootstrapping, copy, switch, etc.
 ```
 
-## Key Patterns
+Note: flake.nix exposes nixosConfigurations with keys: bare-aarch64, bare-x86_64, vm-aarch64, vm-x86_64. Use those names when referencing outputs.
 
-### Machine Builder (lib/mksystem.nix)
+## Important Patterns
 
-Pattern from mitchellh - abstracts boilerplate. Takes machine name + config, returns nixosSystem.
+- The project uses a small mk-system helper (lib/mk-system.nix) to wrap Determinate Systems' nixosModule and produce the nixosConfigurations. See lib/mk-system.nix.
+- Namespace service options under a project-specific prefix (e.g., services.homelab.*) to avoid collisions.
+- Keep machine-specific overrides in the machine directories (vm-*/ bare-*); put shared configuration in machines/shared.nix.
+- Keep user-level system entries in users/<name>/nixos.nix and the corresponding home-manager config in users/<name>/home.nix.
 
-### Module Pattern
+## Secrets
 
-```nix
-{ config, lib, pkgs, ... }:
-with lib;
-let cfg = config.services.homelab.myservice;
-in {
-  options.services.homelab.myservice = {
-    enable = mkEnableOption "description";
-  };
-  config = mkIf cfg.enable { ... };
-}
-```
+- The secrets/ directory contains public keys and examples; private material must never be committed. Follow existing patterns (agenix/sops or other external secret fetch) when adding secrets locally.
 
-### Imports
+## Build & Operations (preferred workflows)
 
-- `machines/vm/default.nix` imports `../shared.nix` + modules
-- `machines/shared.nix` has config for ALL machines
-- Machine-specific files only contain overrides/additions
+This repo provides a Makefile with convenient targets. Preferred approach is to use those targets rather than hand-writing long nixos-rebuild commands.
 
-### User Config Separation
+Key Makefile targets and usage:
 
-- `users/<name>/nixos.nix`: System-level user account
-- `users/<name>/home.nix`: Home-manager user environment
+- VM bootstrap (host -> VM iso install):
+  - NIXADDR=<VM_IP> make vm/bootstrap0   # partition, format, install minimal NixOS (root password set)
+  - NIXADDR=<VM_IP> make vm/bootstrap    # copy config and apply full configuration
 
-## Conventions
+- VM management (from host):
+  - NIXADDR=<VM_IP> make vm/copy         # rsync repository into VM (/nix-config)
+  - NIXADDR=<VM_IP> make vm/switch       # run nixos-rebuild on VM using the copied config
 
-1. **Namespace modules**: `services.homelab.*` not `services.*` (avoid conflicts)
-2. **FlakeHub inputs**: Use `https://flakehub.com/f/...` URLs (like nome)
-3. **Conventional commits**: Required (see ../AGENTS.md)
-4. **No secrets in repo**: Use agenix or external fetch
-5. **Test in VM first**: Always build VM before bare metal
-6. **Use lib.mkDefault**: For values machines might override
+- Local operations (run inside VM or on bare metal):
+  - make switch          # apply configuration (uses NIXNAME variable)
+  - make test            # run nixos-rebuild test
 
-## Implementation Order
+Makefile variables:
+- NIXADDR: remote VM address for vm/* targets
+- NIXPORT: SSH port (default 22)
+- NIXUSER: user to connect as when copying/applying (default hass)
+- NIXNAME: the nixosConfigurations key to operate on (default in Makefile: vm-aarch64)
 
-1. **Foundation**: flake.nix → lib/mksystem.nix → machines/shared.nix → VM config → user configs
-2. **Services**: Add modules/services/\* as needed (tailscale, docker, etc.)
-3. **Advanced**: overlays, secrets management
-4. **Bare Metal**: Replicate VM pattern with hardware-specific tweaks
+Examples:
+- Build/check flake locally: nix flake check
+- Build a configuration derivation (example): nix build .#nixosConfigurations.vm-aarch64.config.system.build.toplevel
+- Apply inside target machine (from within that machine): sudo NIXPKGS_ALLOW_UNFREE=1 nixos-rebuild switch --flake .#vm-aarch64
 
-## Quick Reference
+The Makefile also includes safe helpers for partitioning, formatting and mounting an attached VM disk (vm/partition, vm/format, vm/mount). Read Makefile for exact semantics and required env vars.
 
-**Build VM**: `nix build .#nixosConfigurations.vm.config.system.build.toplevel`
-**Check**: `nix flake check`
-**Deploy**: `sudo nixos-rebuild switch --flake .#vm` (from inside VM)
-**Format**: `nix fmt`
-**Update**: `nix flake update`
+## Conventions & Validation
 
-## Environment Details
+- Use Conventional Commits for changes: e.g., feat(nixos): add tailscale module
+- Run nix flake check and nix fmt where applicable
+- Test in VM build before applying to bare metal
+- Avoid committing secrets; check .gitignore before committing
 
-- VM: aarch64-linux or x86_64-linux (specify in flake.nix)
-- Bare: x86_64-linux (adjust as needed)
-- User: Set username in flake.nix constants
+## Typical Services & Modules
 
-**Typical Homelab Services**:
-
-- Tailscale (VPN/mesh networking)
-- Docker/Podman (container runtime)
-- Storage services (NFS, Samba)
-- Media services (Plex, Jellyfin - if desired)
-- Monitoring (Prometheus, Grafana)
-- Reverse proxy (Traefik, Caddy)
+Common services configured here include Tailscale, container runtimes (Docker/Podman), storage services, monitoring (Prometheus/Grafana) and reverse proxies (Traefik/Caddy). Add service modules under modules/services/ following the local module pattern.
 
 ## When Writing Code
 
-1. Check ~/src/nixos-config or ~/src/nome for similar patterns first
-2. Follow the module pattern for all services
-3. Put shared config in machines/shared.nix
-4. Put machine-specific overrides in machines/{vm,bare}/default.nix
-5. Use descriptive commit messages: `feat(nixos): add docker module`
-
-## Common Tasks
-
-**New service module**: Create in `modules/services/`, import in machine config, enable with option
-**New machine**: Create dir in `machines/`, add to flake.nix outputs
-**Update package**: Add to overlay or use unstable input
-**Secrets**: Use agenix pattern from mitchellh's repo
-**Deploy to bare metal**: After testing in VM, apply same config to physical hardware
+- Inspect lib/mk-system.nix and flake.nix to understand how outputs are composed
+- Follow the module pattern for services and expose an enable option
+- Keep changes minimal and document how to validate them (nix flake check, nix build, Makefile targets)
 
 ## Testing
 
-After any change:
+After changes:
+- nix flake check
+- nix build .#nixosConfigurations.<target>.config.system.build.toplevel (replace <target> with vm-aarch64, vm-x86_64, etc.)
+- Use Makefile targets (make test / make switch) for applying or testing on the machine
 
-```bash
-nix flake check           # Syntax/structure
-nix build .#nixosConfigurations.vm.config.system.build.toplevel  # VM builds
-# If both pass, ready to deploy
-```
+## Common Tasks
+
+- New service module: create modules/services/<name>.nix, import/use it in machine modules and expose an option
+- New machine: add a directory under machines/ and add an entry to flake.nix's nixosConfigurations
+- Secrets: add only examples here; use an external secret manager to provision at deploy time
+
+---
+
+This file documents repository conventions and the operational workflow for the NixOS configuration. If you need a machine-specific clarification, read the machine directory's files and the Makefile before changing anything.

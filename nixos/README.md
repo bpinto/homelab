@@ -65,9 +65,6 @@ export NIXADDR=192.168.58.XXX
 
 # For Apple Silicon (M1/M2/M3/etc):
 export NIXNAME=vm-aarch64
-
-# For Intel Macs:
-export NIXNAME=vm-intel
 ```
 
 **6. Run initial bootstrap**:
@@ -103,7 +100,7 @@ After the final reboot, you should have a fully functional NixOS server VM.
 **SSH into the VM**:
 
 ```bash
-ssh bpinto@<VM-IP>
+ssh hass@<VM-IP>
 ```
 
 **Testing Configuration Changes**:
@@ -145,28 +142,6 @@ make vm/copy
 
 # Apply in VM
 make vm/switch
-```
-
-## Configuration Structure
-
-See [AGENTS.md](./AGENTS.md) for detailed structure and development guidelines.
-
-```
-nixos/
-├── flake.nix              # Entry point - all machine definitions
-├── flake.lock             # Locked dependencies
-├── lib/
-│   └── mksystem.nix       # Machine builder abstraction
-├── machines/
-│   ├── shared.nix         # Configuration shared by all machines
-│   ├── vm/                # VM-specific configuration
-│   └── bare/              # Bare metal configuration
-├── modules/
-│   ├── services/          # Service modules (tailscale, docker, etc.)
-│   └── ...
-├── users/
-│   └── <username>/        # Per-user system and home-manager configs
-└── ...
 ```
 
 ## Resources
