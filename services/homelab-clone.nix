@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # Systemd service to clone the homelab repository once on bootstrap
@@ -7,12 +12,12 @@
     wantedBy = [ "multi-user.target" ];
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
-    
+
     # Only run if the directory doesn't exist
     unitConfig = {
       ConditionPathExists = "!/home/hass/src/homelab";
     };
-    
+
     serviceConfig = {
       Type = "oneshot";
       User = "hass";
