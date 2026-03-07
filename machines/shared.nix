@@ -18,6 +18,7 @@
 
     # Import service configurations
     ../services/homelab-clone.nix
+    ../services/tailscale.nix
   ];
 
   # Systemd-boot configuration for UEFI systems
@@ -27,6 +28,7 @@
   environment.systemPackages = with pkgs; [
     bash
     coreutils
+    ethtool
     nixfmt
   ];
 
@@ -49,22 +51,22 @@
     };
   };
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # Don't require password for sudo
+  security.sudo.wheelNeedsPassword = false;
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+  services.openssh.settings.PasswordAuthentication = false;
+
   # SOPS configuration
   sops.age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
   sops.defaultSopsFile = ./../secrets/nixos.yaml;
   sops.secrets.user_hass_password = {
     neededForUsers = true;
   };
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  services.openssh.settings.PasswordAuthentication = false;
-
-  # Don't require password for sudo
-  security.sudo.wheelNeedsPassword = false;
 
   system.stateVersion = "25.11";
 
