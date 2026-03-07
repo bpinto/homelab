@@ -20,13 +20,6 @@
     ../services/homelab-clone.nix
   ];
 
-  # Home Manager configuration
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.hass = import ../users/hass/home-manager.nix;
-  };
-
   # Systemd-boot configuration for UEFI systems
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = true;
@@ -36,6 +29,13 @@
     coreutils
     nixfmt
   ];
+
+  # Home Manager configuration
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.hass = import ../users/hass/home-manager.nix;
+  };
 
   nix = {
     extraOptions = ''
@@ -67,6 +67,8 @@
   security.sudo.wheelNeedsPassword = false;
 
   system.stateVersion = "25.11";
+
+  time.timeZone = "Europe/Lisbon";
 
   # Reset users and groups configuration on system activation
   users.mutableUsers = false;
