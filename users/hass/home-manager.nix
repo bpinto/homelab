@@ -6,6 +6,11 @@
   # introduces backwards incompatible changes.
   home.stateVersion = "25.11";
 
+  programs.neovim = {
+    defaultEditor = true;
+    enable = true;
+  };
+
   home.packages = with pkgs; [
     git
   ];
