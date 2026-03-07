@@ -1,4 +1,11 @@
-{ config, pkgs, lib, sops-nix, home-manager, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  sops-nix,
+  home-manager,
+  ...
+}:
 
 {
   # Import flake modules
@@ -24,7 +31,11 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.enable = true;
 
-  environment.systemPackages = with pkgs; [ bash coreutils nixfmt ];
+  environment.systemPackages = with pkgs; [
+    bash
+    coreutils
+    nixfmt
+  ];
 
   nix = {
     extraOptions = ''
@@ -41,7 +52,9 @@
   # SOPS configuration
   sops.age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
   sops.defaultSopsFile = ./../secrets/nixos.yaml;
-  sops.secrets.user_hass_password = { neededForUsers = true; };
+  sops.secrets.user_hass_password = {
+    neededForUsers = true;
+  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
