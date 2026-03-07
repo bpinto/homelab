@@ -24,6 +24,11 @@
     };
   };
 
+  # SOPS configuration
+  sops.age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
+  sops.defaultSopsFile = ./../secrets/nixos.yaml;
+  sops.secrets.user_hass_password = { neededForUsers = true; };
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 

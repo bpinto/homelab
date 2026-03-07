@@ -32,7 +32,7 @@ ROOT_PART := /dev/disk/by-label/$(ROOT_LABEL)
 # Derive partition prefix: /dev/sda -> /dev/sda, /dev/nvme0n1 -> /dev/nvme0n1p
 PART_PREFIX := $(shell echo $(DISK) | grep -q 'nvme\|mmcblk' && echo "$(DISK)p" || echo "$(DISK)")
 
-.PHONY: help switch test vm/format vm/partition vm/mount
+.PHONY: help switch test vm/format vm/partition vm/mount vm/secrets vm/switch
 
 help: ## Show this help message
 	@echo "Homelab NixOS Configuration"
@@ -126,6 +126,7 @@ vm/bootstrap:
 		exit 1; \
 	fi
 	NIXUSER=root $(MAKE) vm/copy
+	NIXUSER=root $(MAKE) vm/secrets
 	NIXUSER=root $(MAKE) vm/switch
 	@echo "Bootstrap complete! VM will reboot..."
 	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) "sudo reboot"
@@ -142,6 +143,13 @@ vm/copy:
 		--exclude='iso/' \
 		--rsync-path="sudo rsync" \
 		$(MAKEFILE_DIR)/ $(NIXUSER)@$(NIXADDR):/nix-config
+
+# copy our secrets into the VM
+vm/secrets:
+	# SSH keys
+	rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
+		--exclude='environment' \
+		$(HOME)/.ssh/homelab_host* $(NIXUSER)@$(NIXADDR):/etc/ssh/
 
 # run the nixos-rebuild switch command. This does NOT copy files so you
 # have to run vm/copy before.
