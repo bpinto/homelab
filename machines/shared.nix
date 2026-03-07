@@ -1,10 +1,21 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, sops-nix, home-manager, ... }:
 
 {
-  # Import per-user system config
+  # Import flake modules
   imports = [
+    sops-nix.nixosModules.sops
+    home-manager.nixosModules.home-manager
+
+    # Import OS configuration
     ../users/hass/nixos.nix
   ];
+
+  # Home Manager configuration
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.hass = import ../users/hass/home-manager.nix;
+  };
 
   # Systemd-boot configuration for UEFI systems
   boot.loader.efi.canTouchEfiVariables = true;
