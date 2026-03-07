@@ -5,4 +5,8 @@
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
   home.stateVersion = "25.11";
+
+  home.packages = with pkgs; [
+    git
+  ];
 }

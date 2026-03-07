@@ -6,8 +6,11 @@
     sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
 
-    # Import OS configuration
+    # Import OS configurations
     ../users/hass/nixos.nix
+
+    # Import service configurations
+    ../services/homelab-clone.nix
   ];
 
   # Home Manager configuration
