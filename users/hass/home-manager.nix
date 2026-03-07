@@ -13,5 +13,8 @@
 
   home.packages = with pkgs; [
     git
+    htop
+    ripgrep
+    tree
   ];
 }
