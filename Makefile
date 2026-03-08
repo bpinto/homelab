@@ -150,6 +150,14 @@ vm/secrets:
 	rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
 		--exclude='environment' \
 		$(HOME)/.ssh/homelab_host* $(NIXUSER)@$(NIXADDR):/etc/ssh/
+	rsync -av -e 'ssh $(SSH_OPTIONS) -p$(NIXPORT)' \
+		--exclude='environment' \
+		$(HOME)/.ssh/homelab_host* $(NIXUSER)@$(NIXADDR):/home/hass/.ssh/
+	ssh $(SSH_OPTIONS) -p$(NIXPORT) $(NIXUSER)@$(NIXADDR) " \
+		sudo chown -R hass:users /home/hass/.ssh && \
+		sudo chmod 700 /home/hass/.ssh && \
+		sudo chmod 600 /home/hass/.ssh/homelab_host* \
+	"
 
 # run the nixos-rebuild switch command. This does NOT copy files so you
 # have to run vm/copy before.

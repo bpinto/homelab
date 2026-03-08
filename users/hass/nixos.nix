@@ -6,6 +6,10 @@
 }:
 
 {
+  sops.secrets.user_hass_password = {
+    neededForUsers = true;
+  };
+
   users.users.hass = {
     description = "Home Assistant user";
     extraGroups = [
