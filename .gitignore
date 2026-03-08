@@ -19,10 +19,12 @@ home-assistant/*.db-journal
 home-assistant/**/*.log
 home-assistant/*.pid
 home-assistant/.ha_run.lock
+home-assistant/.HA_VERSION
 
 # Home Assistant directories
-home-assistant/.storage/
+home-assistant/.cache/
 home-assistant/.cloud/
+home-assistant/.storage/
 home-assistant/deps/
 home-assistant/tts/
 home-assistant/www/
