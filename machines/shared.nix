@@ -22,8 +22,14 @@
   ];
 
   # Systemd-boot configuration for UEFI systems
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = true;
+  boot.loader = {
+    efi.canTouchEfiVariables = true;
+
+    systemd-boot = {
+      enable = true;
+      configurationLimit = 2;
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     bash
@@ -43,6 +49,16 @@
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
+
+    # Automatically run the nix garbage collector
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
+
+    # Automatically run the nix store optimiser (daily at 3:45am)
+    optimise.automatic = true;
 
     # Garnix binary cache
     settings = {
