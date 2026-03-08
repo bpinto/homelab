@@ -50,6 +50,16 @@
       experimental-features = nix-command flakes
     '';
 
+    # Automatically run the nix garbage collector
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
+
+    # Automatically run the nix store optimiser (daily at 3:45am)
+    optimise.automatic = true;
+
     # Garnix binary cache
     settings = {
       substituters = [ "https://cache.garnix.io/" ];
