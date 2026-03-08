@@ -16,7 +16,10 @@
     # Import OS configurations
     ../users/hass/nixos.nix
 
-    # Import service configurations
+    # Import containers
+    ../containers/home-assistant.nix
+
+    # Import services
     ../services/homelab-clone.nix
     ../services/tailscale.nix
   ];
