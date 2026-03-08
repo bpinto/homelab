@@ -24,6 +24,9 @@
     allowedUDPPorts = [ config.services.tailscale.port ];
   };
 
+  # Enable systemd-resolved for DNS resolution
+  services.resolved.enable = true;
+
   # Enable tailscale. We manually authenticate when we want with "sudo tailscale up".
   services.tailscale = {
     enable = true;
