@@ -18,14 +18,8 @@
 
     # Import service configurations
     ../services/homelab-clone.nix
+    ../services/tailscale.nix
   ];
-
-  # Home Manager configuration
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.hass = import ../users/hass/home-manager.nix;
-  };
 
   # Systemd-boot configuration for UEFI systems
   boot.loader.efi.canTouchEfiVariables = true;
@@ -34,8 +28,16 @@
   environment.systemPackages = with pkgs; [
     bash
     coreutils
+    ethtool
     nixfmt
   ];
+
+  # Home Manager configuration
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.hass = import ../users/hass/home-manager.nix;
+  };
 
   nix = {
     extraOptions = ''
@@ -49,6 +51,16 @@
     };
   };
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # Don't require password for sudo
+  security.sudo.wheelNeedsPassword = false;
+
+  # Enable the OpenSSH daemon.
+  services.openssh.enable = true;
+  services.openssh.settings.PasswordAuthentication = false;
+
   # SOPS configuration
   sops.age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
   sops.defaultSopsFile = ./../secrets/nixos.yaml;
@@ -56,17 +68,9 @@
     neededForUsers = true;
   };
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  services.openssh.settings.PasswordAuthentication = false;
-
-  # Don't require password for sudo
-  security.sudo.wheelNeedsPassword = false;
-
   system.stateVersion = "25.11";
+
+  time.timeZone = "Europe/Lisbon";
 
   # Reset users and groups configuration on system activation
   users.mutableUsers = false;
