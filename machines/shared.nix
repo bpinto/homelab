@@ -22,8 +22,14 @@
   ];
 
   # Systemd-boot configuration for UEFI systems
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.enable = true;
+  boot.loader = {
+    efi.canTouchEfiVariables = true;
+
+    systemd-boot = {
+      enable = true;
+      configurationLimit = 2;
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     bash
