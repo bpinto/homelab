@@ -38,6 +38,12 @@
     nixfmt
   ];
 
+  # Enable firmware for hardware devices (e.g., Realtek WiFi/network chips)
+  hardware.enableAllFirmware = true;
+
+  # Enable Bluetooth support
+  hardware.bluetooth.enable = true;
+
   # Home Manager configuration
   home-manager = {
     # NixOS system-wide home-manager configuration
