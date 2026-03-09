@@ -7,7 +7,10 @@
 
 {
   # Import shared configuration
-  imports = [ ../shared.nix ];
+  imports = [
+    ../shared.nix
+    ../bare-shared.nix
+  ];
 
   # Bare-metal aarch64 specific overrides
   networking.hostName = "nixos";
