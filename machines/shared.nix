@@ -2,22 +2,19 @@
   config,
   pkgs,
   lib,
-  sops-nix,
   home-manager,
+  sops-nix,
   ...
 }:
 
 {
   # Import flake modules
   imports = [
-    sops-nix.nixosModules.sops
     home-manager.nixosModules.home-manager
+    sops-nix.nixosModules.sops
 
     # Import OS configurations
     ../users/hass/nixos.nix
-
-    # Import containers
-    ../containers/home-assistant.nix
 
     # Import services
     ../services/homelab-clone.nix
@@ -43,8 +40,15 @@
 
   # Home Manager configuration
   home-manager = {
+    # NixOS system-wide home-manager configuration
+    sharedModules = [
+      sops-nix.homeManagerModules.sops
+    ];
+
     useGlobalPkgs = true;
     useUserPackages = true;
+
+    # Configure users
     users.hass = import ../users/hass/home-manager.nix;
   };
 
@@ -81,10 +85,9 @@
   services.openssh.settings.PasswordAuthentication = false;
 
   # SOPS configuration
-  sops.age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
-  sops.defaultSopsFile = ./../secrets/nixos.yaml;
-  sops.secrets.user_hass_password = {
-    neededForUsers = true;
+  sops = {
+    age.sshKeyPaths = [ "/etc/ssh/homelab_host" ];
+    defaultSopsFile = ./../secrets/nixos.yaml;
   };
 
   system.stateVersion = "25.11";
