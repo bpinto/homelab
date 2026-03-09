@@ -17,6 +17,7 @@
     ../users/hass/nixos.nix
 
     # Import services
+    ../services/avahi.nix
     ../services/homelab-clone.nix
     ../services/tailscale.nix
   ];
