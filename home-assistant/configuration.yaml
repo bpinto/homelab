@@ -16,10 +16,15 @@ http:
     - 127.0.0.1
 
 logger:
+  default: warning
   logs:
     # This integration doesn't automatically respect the configured home assistant
     # log level, so we set it to warning to avoid excessive logging.
     custom_components.portuguese_energy_price_tracker: warning
+  filters:
+    # Filter out 'message too large' warnings from Predbat entities
+    homeassistant.components.recorder.db_schema:
+      - "State attributes for predbat.* exceed maximum size of 16384 bytes. This can cause database performance issues; Attributes will not be stored"
 
 # Increase history retention to 14 days for predbat to have enough data for accurate predictions
 recorder:
