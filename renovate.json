@@ -5,18 +5,18 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["\\.service$"],
+      "fileMatch": ["containers/.*\\.nix$"],
       "matchStrings": [
-        "\\s+docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]*-?v?[\\d.]+)\\s+"
+        "image\\s*=\\s*\"docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://registry-1.docker.io"
     },
     {
       "customType": "regex",
-      "fileMatch": ["\\.service$"],
+      "fileMatch": ["containers/.*\\.nix$"],
       "matchStrings": [
-        "\\s+ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[\\w.-]*-?v?[\\d.]+)\\s+"
+        "image\\s*=\\s*\"ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "docker",
       "registryUrlTemplate": "https://ghcr.io"
