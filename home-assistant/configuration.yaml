@@ -22,3 +22,7 @@ recorder:
 # Enable the dbus_userns_patch to allow Home Assistant to run in a user namespace,
 # which is required for running Home Assistant in a non-privileged container.
 dbus_userns_patch:
+
+# Disable DHCP discovery to avoid "Operation not permitted" errors
+# in rootless Podman (raw socket access is restricted)
+dhcp:

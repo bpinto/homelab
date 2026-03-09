@@ -17,6 +17,7 @@
     ../users/hass/nixos.nix
 
     # Import services
+    ../services/avahi.nix
     ../services/homelab-clone.nix
     ../services/tailscale.nix
   ];
@@ -37,6 +38,12 @@
     ethtool
     nixfmt
   ];
+
+  # Enable firmware for hardware devices (e.g., Realtek WiFi/network chips)
+  hardware.enableAllFirmware = true;
+
+  # Enable Bluetooth support
+  hardware.bluetooth.enable = true;
 
   # Home Manager configuration
   home-manager = {
