@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   sops.secrets.wifi_iot_password = { };
@@ -28,12 +33,21 @@
   };
 
   # Use systemd-networkd for network management
-  systemd.network.enable = true;
+  systemd.network = {
+    enable = true;
+
+    # Configure systemd-networkd-wait-online to succeed when any interface is online
+    # This allows boot to proceed once either ethernet or wifi is connected
+    wait-online = {
+      enable = true;
+      anyInterface = true;
+    };
+  };
 
   # Ethernet configuration - matches any Ethernet interface
   systemd.network.networks."10-ethernet" = {
     matchConfig.Name = "en*";
-    linkConfig.RequiredForOnline = "no";
+    linkConfig.RequiredForOnline = "routable";
 
     networkConfig = {
       DHCP = "yes";
@@ -44,7 +58,7 @@
   # WiFi configuration - matches any WiFi interface
   systemd.network.networks."20-wifi" = {
     matchConfig.Name = "wl*";
-    linkConfig.RequiredForOnline = "no";
+    linkConfig.RequiredForOnline = "routable";
 
     networkConfig = {
       DHCP = "yes";
