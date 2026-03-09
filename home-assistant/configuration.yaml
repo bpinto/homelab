@@ -15,6 +15,12 @@ http:
   trusted_proxies:
     - 127.0.0.1
 
+logger:
+  logs:
+    # This integration doesn't automatically respect the configured home assistant
+    # log level, so we set it to warning to avoid excessive logging.
+    custom_components.portuguese_energy_price_tracker: warning
+
 # Increase history retention to 14 days for predbat to have enough data for accurate predictions
 recorder:
   purge_keep_days: 14
