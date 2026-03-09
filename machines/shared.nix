@@ -36,6 +36,7 @@
     bash
     coreutils
     ethtool
+    ghostty.terminfo
     nixfmt
   ];
 
