@@ -14,6 +14,9 @@
     enable = true;
 
     settings = {
+      DriverQuirks = {
+        PowerSaveDisable = "*";
+      };
       IPv6 = {
         Enabled = true;
       };

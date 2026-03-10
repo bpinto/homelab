@@ -7,6 +7,8 @@
 
 {
   imports = [
+    ./nushell.nix
+
     # Import containers
     ../../containers/user/esphome.nix
     ../../containers/user/home-assistant.nix
