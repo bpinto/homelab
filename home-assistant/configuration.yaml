@@ -9,6 +9,17 @@ frontend:
 homeassistant:
   packages: !include_dir_named packages/
 
+# Enable the HomeKit Bridge integration
+homekit:
+  filter:
+    exclude_domains:
+      - automation
+    exclude_entities:
+      - select.active_energy_provider
+      - switch.goodwe_fast_charging_switch
+    exclude_entity_globs:
+      - select.ar_condicionado_*_vertical_vane
+
 # Expose Home Assistant to the tailscale network
 http:
   use_x_forwarded_for: true

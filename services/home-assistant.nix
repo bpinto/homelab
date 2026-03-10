@@ -11,4 +11,8 @@
     6666
     6667
   ];
+
+  networking.firewall.allowedTCPPorts = [
+    21063 # HomeKit Bridge
+  ];
 }
