@@ -36,6 +36,9 @@ logger:
     # Filter out 'message too large' warnings from Predbat entities
     homeassistant.components.recorder.db_schema:
       - "State attributes for predbat.* exceed maximum size of 16384 bytes. This can cause database performance issues; Attributes will not be stored"
+      - "State attributes for sensor.custom_predbat_current_buy_electricity_price_raw exceed maximum size of 16384 bytes. This can cause database performance issues; Attributes will not be stored"
+      - "State attributes for sensor.predbat_load_ml_forecast exceed maximum size of 16384 bytes. This can cause database performance issues; Attributes will not be stored"
+      - "State attributes for sensor.predbat_temperature exceed maximum size of 16384 bytes. This can cause database performance issues; Attributes will not be stored"
 
 # Increase history retention to 14 days for predbat to have enough data for accurate predictions
 recorder:
