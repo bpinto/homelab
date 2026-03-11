@@ -18,6 +18,7 @@
 
     # Import services
     ../services/avahi.nix
+    ../services/home-assistant.nix
     ../services/homelab-clone.nix
     ../services/tailscale.nix
   ];
