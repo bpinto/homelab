@@ -190,11 +190,41 @@ pred_bat:
   metric_standing_charge: 0.4236
 
   # Electricity price in euros per kWh for each time interval
-  metric_octopus_import: "sensor.custom_predbat_current_buy_electricity_price_raw"
+  #metric_octopus_import: "sensor.custom_predbat_current_buy_electricity_price_raw"
 
   # Flat export rate
   rates_export:
     - rate: 0
+
+  rates_import:
+    # Horário de inverno (01/11 a 31/03)
+    - start: "00:00:00" # Vazio
+      end: "08:00:00"
+      rate: 13.5177 # 0,1099 €
+
+    - start: "08:00:00" # Cheias
+      end: "09:00:00"
+      rate: 16.4574 # 0,1338 €
+
+    - start: "09:00:00" # Ponta
+      end: "10:30:00"
+      rate: 41.8692 # 0,3404 €
+
+    - start: "10:30:00" # Cheias
+      end: "18:00:00"
+      rate: 16.4574 # 0,1338 €
+
+    - start: "18:00:00" # Ponta
+      end: "20:30:00"
+      rate: 41.8692 # 0,3404 €
+
+    - start: "20:30:00" # Cheias
+      end: "22:00:00"
+      rate: 16.4574 # 0,1338 €
+
+    - start: "22:00:00" # Vazio
+      end: "00:00:00"
+      rate: 13.5177 # 0,1099 €
 
   ##
   # Car Charging Integration
