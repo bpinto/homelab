@@ -1,0 +1,47 @@
+# Home sleep package
+#
+# Turn off outside lights and lock/close the outside doors at 22:30 every day.
+# This package uses entity `label` attributes to find the targeted entities.
+#
+# - Lights: add `label: "Outside Lights"` to any light entity that should be
+#   switched off by this automation.
+# - Door: add `label: "Outside Doors"` to the entity (typically a lock.*) that
+#   represents the door you want secured. This automation calls lock.lock on any
+#   entity with that label. If your door is modeled as a cover (cover.*) or a
+#   different domain, update the service to the appropriate one (e.g., cover.close).
+
+automation:
+  - id: home_sleep_turn_off_outside_lights_and_close_door
+    alias: "Home sleep — turn off outside lights and close outside doors"
+    description: "At 22:30 turn off outside lights (label: Outside Lights) and close the outside doors (label: Outside Doors)."
+    trigger:
+      - platform: time
+        at: "22:30:00"
+    condition:
+      - condition: template
+        value_template: >-
+          {% set bianca_home = states('device_tracker.iphone_bianca') == 'home' %}
+          {% set bruno_home = states('device_tracker.iphone_bruno') == 'home' %}
+          {{ bianca_home or bruno_home }}
+    action:
+      - variables:
+          outside_lights: >-
+            {{ label_entities('outside_lights') }}
+          outside_doors: >-
+            {{ label_entities('outside_doors') }}
+
+      - if:
+          - condition: template
+            value_template: "{{ outside_lights | length > 0 }}"
+        then:
+          - service: light.turn_off
+            data:
+              entity_id: "{{ outside_lights }}"
+
+      - if:
+          - condition: template
+            value_template: "{{ outside_doors | length > 0 }}"
+        then:
+          - service: lock.lock
+            data:
+              entity_id: "{{ outside_doors }}"
