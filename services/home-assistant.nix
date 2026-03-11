@@ -13,6 +13,8 @@
   ];
 
   networking.firewall.allowedTCPPorts = [
-    21063 # HomeKit Bridge
+    # HomeKit Bridges (separate instances)
+    21063
+    21064
   ];
 }

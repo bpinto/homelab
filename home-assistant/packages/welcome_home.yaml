@@ -1,0 +1,65 @@
+# Welcome home package
+#
+# Turn on outside lights when one arrives home and it's dark. This package
+# uses entity `label` attributes to find the targeted entities.
+#
+# - Lights: add `label: "Entrance Lights"` and `label: "Outside Lights"` to any light entity that should be
+#   switched on by this automation.
+automation:
+  - id: welcome_home_turn_on_outside_lights
+    alias: "Welcome home — turn on outside lights"
+    description: "Turn on outside lights when specific devices are seen online and it's dark."
+    trigger:
+      - platform: event
+        event_type: tplink_router_device_online
+    condition:
+      - condition: template
+        value_template: >-
+          {% set mac = (trigger.event.data.get('mac_address') if trigger.event is defined else None) %}
+          {% if not mac %}
+            false
+          {% else %}
+            {% set mac = mac | lower %}
+            {% set bianca_mac = state_attr('device_tracker.iphone_bianca', 'mac') | default('') | lower %}
+            {% set bruno_mac = state_attr('device_tracker.iphone_bruno', 'mac') | default('') | lower %}
+            {% set known = [bianca_mac, bruno_mac] %}
+            {{ mac in known }}
+          {% endif %}
+      - condition: or
+        conditions:
+          - condition: sun
+            after: sunset
+          - condition: sun
+            before: sunrise
+    action:
+      - service: script.turn_on
+        target:
+          entity_id: script.welcome_home_turn_on_outside_lights
+
+script:
+  welcome_home_turn_on_outside_lights:
+    alias: "Welcome Home: turn on entrance lights"
+    sequence:
+      - variables:
+          labeled_entities: >-
+            {% set entrance_lights = label_entities('entrance_lights') %}
+            {% set outside_lights = label_entities('outside_lights') %}
+            {{ entrance_lights | select('in', outside_lights) | list }}
+      - if:
+          - condition: template
+            value_template: "{{ labeled_entities | length > 0 }}"
+        then:
+          - service: scene.create
+            data:
+              scene_id: welcome_home_previous_state
+              snapshot_entities: "{{ labeled_entities }}"
+
+          - service: light.turn_on
+            data:
+              entity_id: "{{ labeled_entities }}"
+
+          - delay: "00:02:00"
+
+          - service: scene.turn_on
+            target:
+              entity_id: scene.welcome_home_previous_state
