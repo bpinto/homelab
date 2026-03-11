@@ -1,0 +1,87 @@
+esphome:
+  name: m5-btproxy
+  friendly_name: M5 BTProxy
+
+esp32:
+  board: esp32-c6-devkitc-1
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# Enable Over-the-Air updates
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+openthread:
+  tlv: !secret thread_tlv
+
+network:
+  enable_ipv6: true
+
+# Setup BLE config
+esp32_ble_tracker:
+
+# Enable BT proxy
+bluetooth_proxy:
+  active: true
+
+button:
+  # Create a button to restart the unit from HomeAssistant. Rarely needed, but can be handy.
+  - platform: restart
+    icon: mdi:power-cycle
+    name: "Restart M5 BTProxy"
+
+sensor:
+  # Uptime sensor
+  - platform: uptime
+    name: Uptime
+    id: sys_uptime
+    update_interval: 60s
+
+  # Internal temperature sensor
+  - platform: internal_temperature
+    name: "ESP Temperature"
+    id: sys_esp_temperature
+
+text_sensor:
+  - platform: openthread_info
+    ip_address:
+      name: "Off-mesh routable IP Address"
+    channel:
+      name: "Channel"
+    role:
+      name: "Device Role"
+    rloc16:
+      name: "RLOC16"
+    ext_addr:
+      name: "Extended Address"
+    eui64:
+      name: "EUI64"
+    network_name:
+      name: "Network Name"
+    # network_key:
+    #   name: "Network Key"
+    pan_id:
+      name: "PAN ID"
+    ext_pan_id:
+      name: "Extended PAN ID"
+  - platform: version
+    name: Version
+    hide_timestamp: true
+    disabled_by_default: false
+    icon: mdi:new-box
+    entity_category: diagnostic
+
+# Sync time with Home Assistant.
+time:
+  - platform: homeassistant
+    id: homeassistant_time

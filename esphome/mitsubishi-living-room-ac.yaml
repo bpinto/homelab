@@ -3,3 +3,10 @@ substitutions:
   friendly_name: Ar Condicionado da Sala de TV
 
 <<: !include packages/mitsubishi-cn105-m5nanoc6.yaml
+
+# Setup BLE config
+esp32_ble_tracker:
+
+# Enable BT proxy
+bluetooth_proxy:
+  active: true
