@@ -7,9 +7,9 @@
 
 {
   networking.firewall.allowedUDPPorts = [
-    # Tuya Local integration
-    6666
-    6667
+    5540  # Matter
+    6666  # Tuya Local
+    6667  # Tuya Local
   ];
 
   networking.firewall.allowedTCPPorts = [
