@@ -5,12 +5,11 @@ automation:
     trigger:
       - platform: time
         at:
-          - "1:00:00"
-          - "4:00:00"
+          - "2:00:00"
     condition:
       - condition: time
-        after: "00:00:00"
-        before: "05:00:00"
+        after: "01:00:00"
+        before: "03:00:00"
     action:
       - delay:
           seconds: "{{ range(30, 360)|random|int }}"
