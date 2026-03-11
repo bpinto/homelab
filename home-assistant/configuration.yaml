@@ -11,14 +11,23 @@ homeassistant:
 
 # Enable the HomeKit Bridge integration
 homekit:
-  filter:
-    exclude_domains:
-      - automation
-    exclude_entities:
-      - select.active_energy_provider
-      - switch.goodwe_fast_charging_switch
-    exclude_entity_globs:
-      - select.ar_condicionado_*_vertical_vane
+  - name: "Home Assistant Bridge"
+    port: 21063
+    filter:
+      exclude_domains:
+        - automation
+      exclude_entities:
+        - lock.lock_e6b7_lock_mechanism
+        - select.active_energy_provider
+        - switch.goodwe_fast_charging_switch
+      exclude_entity_globs:
+        - select.ar_condicionado_*_vertical_vane
+  - name: "Front Door Lock"
+    mode: accessory
+    port: 21064
+    filter:
+      include_entities:
+        - lock.lock_e6b7_lock_mechanism
 
 # Expose Home Assistant to the tailscale network
 http:
