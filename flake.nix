@@ -7,6 +7,9 @@
     # it'll impact your entire system.
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
 
+    # NixOS profiles to optimize settings for different hardware.
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
     # home-manager module for user environment management
     home-manager.url = "github:nix-community/home-manager/release-25.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -19,8 +22,9 @@
   outputs =
     {
       self,
-      nixpkgs,
       home-manager,
+      nixpkgs,
+      nixos-hardware,
       sops-nix,
       ...
     }:
@@ -32,27 +36,21 @@
       };
 
       nixosConfigurations = {
-        bare-aarch64 = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux";
-          specialArgs = { inherit sops-nix home-manager; };
-          modules = [ ./machines/bare-aarch64/default.nix ];
-        };
-
-        bare-x86_64 = nixpkgs.lib.nixosSystem {
+        bmax = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { inherit sops-nix home-manager; };
-          modules = [ ./machines/bare-x86_64/default.nix ];
+          specialArgs = { inherit home-manager nixos-hardware sops-nix; };
+          modules = [ ./machines/bmax.nix ];
         };
 
         vm-aarch64 = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
-          specialArgs = { inherit sops-nix home-manager; };
+          specialArgs = { inherit home-manager sops-nix; };
           modules = [ ./machines/vm-aarch64/default.nix ];
         };
 
         vm-x86_64 = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { inherit sops-nix home-manager; };
+          specialArgs = { inherit home-manager sops-nix; };
           modules = [ ./machines/vm-x86_64/default.nix ];
         };
       };

@@ -6,7 +6,7 @@ NIXPORT ?= 22
 NIXUSER ?= hass
 
 # The name of the nixosConfiguration in the flake
-NIXNAME ?= vm-aarch64 # Options: bare-aarch64, bare-x86_64, vm-aarch64, vm-x86_64
+NIXNAME ?= vm-aarch64 # Options: bmax, vm-aarch64, vm-x86_64
 
 # Get the path to this Makefile and directory
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
@@ -51,7 +51,7 @@ help: ## Show this help message
 	@echo ""
 	@echo "Required variables for VM operations:"
 	@echo "  NIXADDR=<VM IP>      - VM IP address (e.g., 192.168.58.130)"
-	@echo "  NIXNAME=<config>     - Configuration name (default: bare)"
+	@echo "  NIXNAME=<config>     - Configuration name (default: vm-aarch64)"
 
 switch: ## Apply configuration (run inside VM or bare metal)
 	sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild switch --flake ".#$(NIXNAME)"
