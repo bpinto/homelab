@@ -103,6 +103,18 @@ pred_bat:
   inverter_limit:
     - 5000
 
+  # My house's current maximum simultaneous grid import allowed is 6900W, so to avoid hitting
+  # this limit when both the EV and the house battery are charging from the grid, we limit
+  # charging to a maximum of 2000W from the grid.
+  # 3700W for EV charging
+  # 2000W for battery charging
+  # 1200W for house consumption
+  #
+  # IMPORTANT: If this value is removed/changed, review the `battery_rate_max` value as well
+  # to ensure the battery charge rate is planned correctly.
+  inverter_limit_charge:
+    - 2000
+
   ##
   # Controlling the Inverter: Charge/Discharge rate
   ##
@@ -121,7 +133,14 @@ pred_bat:
 
   # Maximum battery charge/discharge rate in watts
   battery_rate_max:
-    - 3600 # Pylontech US3000C battery (max sustained 1.8kW per battery)
+    #- 3600 # Pylontech US3000C battery (max sustained 1.8kW per battery)
+    #
+    # With 3600W as the `battery_rate_max` and 2000W as the `inverter_limit_charge`,
+    # predbat will plan to charge the battery at 55.56% (2000/3600) instead of
+    # 40% (2000/5000), resulting in a charge rate higher than 2000W.
+    #
+    # https://github.com/springfall2008/batpred/issues/3558
+    - 5000
 
   # Maximum charge level for the battery in kWh
   soc_max:
