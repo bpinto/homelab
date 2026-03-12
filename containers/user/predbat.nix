@@ -18,7 +18,13 @@
       };
 
       Service = {
-        ExecStartPre = "${pkgs.bash}/bin/bash -c 'while ! ${pkgs.podman}/bin/podman healthcheck run homeassistant; do echo \"Waiting for homeassistant to be healthy...\"; sleep 2; done'";
+        ExecStartPre = "${pkgs.writeShellScript "predbat-wait-for-ha" ''
+          set -euo pipefail
+          while ! ${pkgs.podman}/bin/podman healthcheck run homeassistant; do
+            echo "Waiting for homeassistant to be healthy..."
+            sleep 2
+          done
+        ''}";
         ExecStartPost = "${pkgs.tailscale}/bin/tailscale serve --service=svc:predbat 127.0.0.1:5052";
         RestartSec = "30";
       };
