@@ -7,9 +7,9 @@
 
 {
   networking.firewall.allowedUDPPorts = [
-    5540  # Matter
-    6666  # Tuya Local
-    6667  # Tuya Local
+    5540 # Matter
+    6666 # Tuya Local
+    6667 # Tuya Local
   ];
 
   networking.firewall.allowedTCPPorts = [

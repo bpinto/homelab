@@ -12,6 +12,7 @@
     # Import containers
     ../../containers/user/esphome.nix
     ../../containers/user/home-assistant.nix
+    ../../containers/user/linkding.nix
     ../../containers/user/matter-server.nix
     ../../containers/user/predbat.nix
   ];
