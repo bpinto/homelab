@@ -20,6 +20,7 @@
     ../services/avahi.nix
     ../services/home-assistant.nix
     ../services/homelab-clone.nix
+    ../services/miniflux.nix
     ../services/tailscale.nix
   ];
 
