@@ -221,63 +221,39 @@ pred_bat:
   # is used for car_charging_hold feature to filter out car charging from the previous load data
   # Automatically set to detect Wallbox and Zappi, if it doesn't match manually enter your sensor name
   # Also adjust car_charging_energy_scale if it's not in kwH to fix the units
-  #car_charging_energy: "re:(sensor.myenergi_zappi_[0-9a-z]+_charge_added_session|sensor.wallbox_portal_added_energy)"
+  car_charging_energy: "sensor.tesla_wall_connector_energy_daily"
 
   # Defines the number of cars modelled by the system, set to 0 for no car
-  num_cars: 0
+  num_cars: 1
 
   # car_charging_planned is set to a sensor which when positive indicates the car will charged in the upcoming low rate slots
-  # This should not be needed if you use Intelligent Octopus slots which will take priority if enabled
   # The list of possible values is in car_charging_planned_response
-  # Auto matches Zappi and Wallbox, or change it for your own
   # One entry per car
-  #car_charging_planned:
-  #- "re:(sensor.wallbox_portal_status_description|sensor.myenergi_zappi_[0-9a-z]+_plug_status)"
+  car_charging_planned:
+    - sensor.tesla_wall_connector_status
 
-  #car_charging_planned_response:
-  #- "yes"
-  #- "on"
-  #- "true"
-  #- "connected"
-  #- "ev connected"
-  #- "charging"
-  #- "paused"
-  #- "waiting for car demand"
-  #- "waiting for ev"
-  #- "scheduled"
-  #- "enabled"
-  #- "latched"
-  #- "locked"
-  #- "plugged in"
-  #- "waiting"
-
-  # In some cases car planning is difficult (e.g. Ohme with Intelligent doesn't report slots)
-  # The car charging now can be set to a sensor to indicate the car is charging and to plan
-  # for it to charge during this 30 minute slot
-  #car_charging_now:
-  #  - off
-
-  # Positive responses for car_charging_now
-  #car_charging_now_response:
-  #- "yes"
-  #- "on"
-  #- "true"
+  car_charging_planned_response:
+    - "charging"
+    - "charging_reduced"
+    - "connected"
+    - "ready"
+    - "waiting_car"
 
   # To make planned car charging more accurate, either using car_charging_planned or the Octopus Energy plugin,
   # specify your battery size in kwh, charge limit % and current car battery soc % sensors/values.
   # If you have Intelligent Octopus the battery size and limit will be extracted from the Octopus Energy plugin directly.
   # Set the car SoC% if you have it to give an accurate forecast of the cars battery levels.
   # One entry per car if you have multiple cars.
-  #car_charging_battery_size:
-  #  - 75
-  #car_charging_limit:
-  #  - 're:number.tsunami_charge_limit'
-  #car_charging_soc:
-  #  - 're:sensor.tsunami_battery'
+  car_charging_battery_size:
+    - 79
+  car_charging_limit:
+    - "number.model_y_charge_limit"
+  car_charging_soc:
+    - "sensor.model_y_battery_level"
 
   # One per car, when true only one car can charge at once, when False multiple cars can charge at once
-  #car_charging_exclusive:
-  #  - True
+  car_charging_exclusive:
+    - True
 
   ##
   # Battery charge/discharge curves
