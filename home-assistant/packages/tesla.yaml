@@ -1,0 +1,37 @@
+automation:
+  alias: Car charging
+  description: "Start/stop car charging based on Predbat determined slots"
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.predbat_car_charging_slot
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.predbat_car_charging_slot
+              state: "on"
+          sequence:
+            - service: switch.turn_on
+              target:
+                entity_id: switch.model_y_charge
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.predbat_car_charging_slot
+              state: "off"
+          sequence:
+            - service: switch.turn_off
+              target:
+                entity_id: switch.model_y_charge
+  mode: single
+
+utility_meter:
+  custom_tesla_wall_connector_energy_daily:
+    source: sensor.tesla_wall_connector_energy
+    cycle: daily
+    name: "Tesla Wall Connector Energy Daily"
+
+  custom_tesla_wall_connector_energy_monthly:
+    source: sensor.tesla_wall_connector_energy
+    cycle: monthly
+    name: "Tesla Wall Connector Energy Monthly"
