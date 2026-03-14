@@ -103,6 +103,18 @@ pred_bat:
   inverter_limit:
     - 5000
 
+  # My house's current maximum simultaneous grid import allowed is 6900W, so to avoid hitting
+  # this limit when both the EV and the house battery are charging from the grid, we limit
+  # charging to a maximum of 2000W from the grid.
+  # 3700W for EV charging
+  # 2000W for battery charging
+  # 1200W for house consumption
+  #
+  # IMPORTANT: If this value is removed/changed, review the `battery_rate_max` value as well
+  # to ensure the battery charge rate is planned correctly.
+  inverter_limit_charge:
+    - 2000
+
   ##
   # Controlling the Inverter: Charge/Discharge rate
   ##
@@ -121,7 +133,14 @@ pred_bat:
 
   # Maximum battery charge/discharge rate in watts
   battery_rate_max:
-    - 3600 # Pylontech US3000C battery (max sustained 1.8kW per battery)
+    #- 3600 # Pylontech US3000C battery (max sustained 1.8kW per battery)
+    #
+    # With 3600W as the `battery_rate_max` and 2000W as the `inverter_limit_charge`,
+    # predbat will plan to charge the battery at 55.56% (2000/3600) instead of
+    # 40% (2000/5000), resulting in a charge rate higher than 2000W.
+    #
+    # https://github.com/springfall2008/batpred/issues/3558
+    - 5000
 
   # Maximum charge level for the battery in kWh
   soc_max:
@@ -176,8 +195,6 @@ pred_bat:
 
   pv_forecast_today: re:(sensor.(solcast_|)(pv_forecast_|)forecast_today)
   pv_forecast_tomorrow: re:(sensor.(solcast_|)(pv_forecast_|)forecast_tomorrow)
-  pv_forecast_d3: re:(sensor.(solcast_|)(pv_forecast_|)forecast_(day_3|d3))
-  pv_forecast_d4: re:(sensor.(solcast_|)(pv_forecast_|)forecast_(day_4|d4))
 
   ##
   # Energy Rates
@@ -187,44 +204,14 @@ pred_bat:
   plan_interval_minutes: 15
 
   # Daily standing charge in euros, can be set to a sensor or manually entered (e.g. 0.50 is 50c)
-  metric_standing_charge: 0.4236
+  metric_standing_charge: 0.5210
 
   # Electricity price in euros per kWh for each time interval
-  #metric_octopus_import: "sensor.custom_predbat_current_buy_electricity_price_raw"
+  metric_octopus_import: "sensor.custom_predbat_current_buy_electricity_price_raw"
 
   # Flat export rate
   rates_export:
     - rate: 0
-
-  rates_import:
-    # Horário de inverno (01/11 a 31/03)
-    - start: "00:00:00" # Vazio
-      end: "08:00:00"
-      rate: 13.5177 # 0,1099 €
-
-    - start: "08:00:00" # Cheias
-      end: "09:00:00"
-      rate: 16.4574 # 0,1338 €
-
-    - start: "09:00:00" # Ponta
-      end: "10:30:00"
-      rate: 41.8692 # 0,3404 €
-
-    - start: "10:30:00" # Cheias
-      end: "18:00:00"
-      rate: 16.4574 # 0,1338 €
-
-    - start: "18:00:00" # Ponta
-      end: "20:30:00"
-      rate: 41.8692 # 0,3404 €
-
-    - start: "20:30:00" # Cheias
-      end: "22:00:00"
-      rate: 16.4574 # 0,1338 €
-
-    - start: "22:00:00" # Vazio
-      end: "00:00:00"
-      rate: 13.5177 # 0,1099 €
 
   ##
   # Car Charging Integration
@@ -234,63 +221,39 @@ pred_bat:
   # is used for car_charging_hold feature to filter out car charging from the previous load data
   # Automatically set to detect Wallbox and Zappi, if it doesn't match manually enter your sensor name
   # Also adjust car_charging_energy_scale if it's not in kwH to fix the units
-  #car_charging_energy: "re:(sensor.myenergi_zappi_[0-9a-z]+_charge_added_session|sensor.wallbox_portal_added_energy)"
+  car_charging_energy: "sensor.tesla_wall_connector_energy_daily"
 
   # Defines the number of cars modelled by the system, set to 0 for no car
-  num_cars: 0
+  num_cars: 1
 
   # car_charging_planned is set to a sensor which when positive indicates the car will charged in the upcoming low rate slots
-  # This should not be needed if you use Intelligent Octopus slots which will take priority if enabled
   # The list of possible values is in car_charging_planned_response
-  # Auto matches Zappi and Wallbox, or change it for your own
   # One entry per car
-  #car_charging_planned:
-  #- "re:(sensor.wallbox_portal_status_description|sensor.myenergi_zappi_[0-9a-z]+_plug_status)"
+  car_charging_planned:
+    - sensor.tesla_wall_connector_status
 
-  #car_charging_planned_response:
-  #- "yes"
-  #- "on"
-  #- "true"
-  #- "connected"
-  #- "ev connected"
-  #- "charging"
-  #- "paused"
-  #- "waiting for car demand"
-  #- "waiting for ev"
-  #- "scheduled"
-  #- "enabled"
-  #- "latched"
-  #- "locked"
-  #- "plugged in"
-  #- "waiting"
-
-  # In some cases car planning is difficult (e.g. Ohme with Intelligent doesn't report slots)
-  # The car charging now can be set to a sensor to indicate the car is charging and to plan
-  # for it to charge during this 30 minute slot
-  #car_charging_now:
-  #  - off
-
-  # Positive responses for car_charging_now
-  #car_charging_now_response:
-  #- "yes"
-  #- "on"
-  #- "true"
+  car_charging_planned_response:
+    - "charging"
+    - "charging_reduced"
+    - "connected"
+    - "ready"
+    - "waiting_car"
 
   # To make planned car charging more accurate, either using car_charging_planned or the Octopus Energy plugin,
   # specify your battery size in kwh, charge limit % and current car battery soc % sensors/values.
   # If you have Intelligent Octopus the battery size and limit will be extracted from the Octopus Energy plugin directly.
   # Set the car SoC% if you have it to give an accurate forecast of the cars battery levels.
   # One entry per car if you have multiple cars.
-  #car_charging_battery_size:
-  #  - 75
-  #car_charging_limit:
-  #  - 're:number.tsunami_charge_limit'
-  #car_charging_soc:
-  #  - 're:sensor.tsunami_battery'
+  car_charging_battery_size:
+    - 79
+  car_charging_limit:
+    - "number.model_y_charge_limit"
+  car_charging_soc:
+    - "sensor.model_y_battery_level"
 
   # One per car, when true only one car can charge at once, when False multiple cars can charge at once
-  #car_charging_exclusive:
-  #  - True
+  car_charging_exclusive:
+    - True
 
   ##
   # Battery charge/discharge curves
