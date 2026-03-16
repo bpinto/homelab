@@ -8,15 +8,17 @@
 #   Country: PT
 #   Data source: https://github.com/joaofernandes/portuguese_energy_price_tracker_ha_integration
 #
-# Notes:
-#   Only monitor mode is supported at the moment.
+# Manually adjusted configuration options:
 #
-#   There are many hard coded values in this configuration file.
-#   The most important ones are highlighted below, but you should review the entire file and adjust as needed for your setup.
+#   Options for car charging integration:
+#  - input_number.predbat_car_charging_rate: 3.7kW
+#  - switch.predbat_car_charging_plan_smart: True
+#  - switch.predbat_car_charging_from_battery: True
+#  - select.predbat_car_charging_plan_time: 08:00:00
 #
-#  - Battery capacity (soc_max)
-#  - Inverter limit (inverter_limit)
-# ------------------------------------------------------------------
+#   Options for ML load prediction:
+#  - switch.predbat_calculate_inday_adjustment: False
+#
 ---
 pred_bat:
   module: predbat
@@ -238,6 +240,15 @@ pred_bat:
     - "connected"
     - "ready"
     - "waiting_car"
+
+  # Allow the system to know when the car is charging outside of the planned times, for example,
+  # if you manually start charging from the Tesla app.
+  car_charging_now:
+    - sensor.tesla_wall_connector_status
+
+  car_charging_now_response:
+    - "charging"
+    - "charging_reduced"
 
   # To make planned car charging more accurate, either using car_charging_planned or the Octopus Energy plugin,
   # specify your battery size in kwh, charge limit % and current car battery soc % sensors/values.
