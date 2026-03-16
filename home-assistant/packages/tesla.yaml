@@ -1,31 +1,241 @@
+input_boolean:
+  custom_ev_charging_active:
+    name: "Custom EV Charging Active"
+    icon: mdi:ev-station
+
 automation:
-  alias: Car charging
-  description: "Start/stop car charging based on Predbat determined slots"
-  triggers:
-    - trigger: state
-      entity_id:
-        - binary_sensor.predbat_car_charging_slot
-  actions:
-    - choose:
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.predbat_car_charging_slot
-              state: "on"
-          sequence:
-            - service: switch.turn_on
-              target:
+  - alias: Car charging
+    id: car_charging_predbat_slots
+    description: "Start/stop car charging based on Predbat determined slots"
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.predbat_car_charging_slot
+    actions:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "on"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: switch.model_y_charge
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: switch.model_y_charge
+    mode: single
+
+  - alias: Custom EV charging from excess PV
+    id: custom_ev_charging_excess_pv
+    description: "Charge EV when there's excess PV generation and house battery is full"
+    triggers:
+      # Check every 15 minutes
+      - trigger: time_pattern
+        minutes: "/15"
+      # When battery SoC changes
+      - trigger: state
+        entity_id: sensor.battery_state_of_charge
+      # When PV forecast updates
+      - trigger: state
+        entity_id: sensor.predbat_pv_today
+    conditions:
+    actions:
+      - choose:
+          # Start charging when conditions are met
+          - conditions:
+              # Predbat is not controlling charging right now
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "off"
+              # Battery is sufficiently charged
+              - condition: template
+                value_template: >
+                  {{ states('sensor.battery_state_of_charge') | float(0) > 99 }}
+              # There's excess PV available based on our custom sensor
+              - condition: template
+                value_template: >
+                  {{ states('binary_sensor.custom_ev_excess_pv_available') == 'on' }}
+              # Car is plugged in
+              - condition: template
+                value_template: >
+                  {{ states('sensor.tesla_wall_connector_status') in ['connected', 'ready', 'waiting_car'] }}
+              # Car battery is not already at target (with 1% buffer)
+              - condition: template
+                value_template: >
+                  {{ states('sensor.model_y_battery_level') | float(0) < (states('number.model_y_charge_limit') | float(100) - 1) }}
+              # Charge switch is currently off
+              - condition: state
                 entity_id: switch.model_y_charge
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.predbat_car_charging_slot
-              state: "off"
-          sequence:
-            - service: switch.turn_off
-              target:
+                state: "off"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: switch.model_y_charge
+              - service: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.custom_ev_charging_active
+              - service: notify.notify
+                data:
+                  title: "EV Charging Started"
+                  message: >
+                    Excess PV charging started. Battery: {{ states('sensor.battery_state_of_charge') }}%, 
+                    EV: {{ states('sensor.model_y_battery_level') }}%
+          # Stop charging when conditions are no longer met
+          - conditions:
+              # This automation turned on the charging
+              - condition: state
+                entity_id: input_boolean.custom_ev_charging_active
+                state: "on"
+              - condition: or
+                conditions:
+                  # House battery dropped below threshold
+                  - condition: template
+                    value_template: >
+                      {{ states('sensor.battery_state_of_charge') | float(100) <= 85 }}
+                  # No more excess PV available
+                  - condition: template
+                    value_template: >
+                      {{ states('binary_sensor.custom_ev_excess_pv_available') == 'off' }}
+              - condition: state
                 entity_id: switch.model_y_charge
-  mode: single
+                state: "on"
+            sequence:
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.custom_ev_charging_active
+              - service: switch.turn_off
+                target:
+                  entity_id: switch.model_y_charge
+              - service: notify.notify
+                data:
+                  title: "EV Charging Stopped"
+                  message: >
+                    Excess PV charging stopped. Battery: {{ states('sensor.battery_state_of_charge') }}%, 
+                    EV: {{ states('sensor.model_y_battery_level') }}%
+    mode: single
+
+  - alias: Custom EV charging - track external changes
+    id: custom_ev_charging_track_external
+    description: "Detect when charging switch is changed externally and release control"
+    triggers:
+      - trigger: state
+        entity_id: switch.model_y_charge
+        to: "off"
+    conditions:
+      # Only act if our automation thinks it's in control
+      - condition: state
+        entity_id: input_boolean.custom_ev_charging_active
+        state: "on"
+    actions:
+      # The switch turned off while we think we're in control
+      # This means an external change happened (we turn off the boolean before stopping)
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.custom_ev_charging_active
+      - service: notify.notify
+        data:
+          title: "EV Charging Control Released"
+          message: >
+            Charging was stopped externally, releasing automation control.
+            {% if trigger.to_state.context.user_id %}
+            Changed by user.
+            {% elif trigger.to_state.context.parent_id %}
+            Changed by automation/script.
+            {% else %}
+            Changed by system.
+            {% endif %}
+    mode: single
 
 template:
+  - binary_sensor:
+      - name: "Custom EV Excess PV Available"
+        unique_id: custom_ev_excess_pv_available
+        device_class: power
+        state: >
+          {# Get current time rounded to nearest 15 min in UTC #}
+          {% set now_ts = utcnow() %}
+          {% set current_min = now_ts.minute %}
+          {% set rounded_min = (current_min // 15) * 15 %}
+          {% set current_slot = now_ts.replace(minute=rounded_min, second=0, microsecond=0) %}
+
+          {# Get PV forecast (30min intervals) and load forecast (5min intervals) #}
+          {% set pv_forecast = state_attr('sensor.predbat_pv_today', 'detailedForecast') or [] %}
+          {% set load_results = state_attr('sensor.predbat_load_ml_forecast', 'results') or {} %}
+
+          {# Calculate for next 1 hour (4 x 15min slots) #}
+          {% set ns = namespace(excess_count=0, total_slots=0) %}
+
+          {% for i in range(4) %}
+            {% set slot_start = current_slot + timedelta(minutes=i*15) %}
+            {% set slot_end = slot_start + timedelta(minutes=15) %}
+
+            {# Find matching PV forecast (30min intervals, so round down to 30min boundary) #}
+            {% set pv_slot_start = slot_start.replace(minute=(slot_start.minute // 30) * 30) %}
+            {% set pv_entry = pv_forecast | selectattr('period_start', 'eq', pv_slot_start.isoformat()) | list | first | default(none) %}
+
+            {% if pv_entry %}
+              {# PV is in kWh for 30min - use pv_estimateCL and divide by 2 for 15min #}
+              {% set pv_kwh = (pv_entry.pv_estimateCL | float(0)) / 2 %}
+
+              {# Load forecast uses cumulative kWh - get values at slot boundaries #}
+              {% set start_key = slot_start.strftime('%Y-%m-%dT%H:%M:%S+0000') %}
+              {% set end_key = slot_end.strftime('%Y-%m-%dT%H:%M:%S+0000') %}
+              {% set start_value = load_results.get(start_key, none) %}
+              {% set end_value = load_results.get(end_key, none) %}
+
+              {# Calculate load as difference between end and start cumulative values #}
+              {% if start_value is not none and end_value is not none %}
+                {% set load_kwh = (end_value | float(0)) - (start_value | float(0)) %}
+
+                {# Check if there's excess #}
+                {% set excess = pv_kwh - load_kwh %}
+                {% set ns.total_slots = ns.total_slots + 1 %}
+                {% if excess > 0 %}
+                  {% set ns.excess_count = ns.excess_count + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+
+          {# Consider excess available if at least 2 of next 4 slots have excess (50%) #}
+          {{ ns.total_slots > 0 and ns.excess_count >= 2 }}
+        attributes:
+          excess_slots_count: >
+            {% set now_ts = utcnow() %}
+            {% set current_min = now_ts.minute %}
+            {% set rounded_min = (current_min // 15) * 15 %}
+            {% set current_slot = now_ts.replace(minute=rounded_min, second=0, microsecond=0) %}
+            {% set pv_forecast = state_attr('sensor.predbat_pv_today', 'detailedForecast') or [] %}
+            {% set load_results = state_attr('sensor.predbat_load_ml_forecast', 'results') or {} %}
+            {% set ns = namespace(excess_count=0) %}
+            {% for i in range(4) %}
+              {% set slot_start = current_slot + timedelta(minutes=i*15) %}
+              {% set slot_end = slot_start + timedelta(minutes=15) %}
+              {% set pv_slot_start = slot_start.replace(minute=(slot_start.minute // 30) * 30) %}
+              {% set pv_entry = pv_forecast | selectattr('period_start', 'eq', pv_slot_start.isoformat()) | list | first | default(none) %}
+              {% if pv_entry %}
+                {% set pv_kwh = (pv_entry.pv_estimateCL | float(0)) / 2 %}
+                {% set start_key = slot_start.strftime('%Y-%m-%dT%H:%M:%S+0000') %}
+                {% set end_key = slot_end.strftime('%Y-%m-%dT%H:%M:%S+0000') %}
+                {% set start_value = load_results.get(start_key, none) %}
+                {% set end_value = load_results.get(end_key, none) %}
+                {% if start_value is not none and end_value is not none %}
+                  {% set load_kwh = (end_value | float(0)) - (start_value | float(0)) %}
+                  {% set excess = pv_kwh - load_kwh %}
+                  {% if excess > 0 %}
+                    {% set ns.excess_count = ns.excess_count + 1 %}
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.excess_count }}
+
   - sensor:
       # EV power actually drawn from the grid (capped by grid import)
       - name: "Custom EV Grid Power"
