@@ -25,6 +25,7 @@ automation:
                 entity_id: switch.model_y_charge
   mode: single
 
+template:
   - sensor:
       # EV power actually drawn from the grid (capped by grid import)
       - name: "Custom EV Grid Power"
