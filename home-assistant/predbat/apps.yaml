@@ -261,6 +261,7 @@ pred_bat:
 
   # List of entities that when changed will trigger a re-plan.
   watch_list:
+    - "+[car_charging_limit]"
     - "+[car_charging_planned]"
     - "+[car_charging_soc]"
     - "{car_charging_now}"
