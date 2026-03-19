@@ -16,6 +16,7 @@ homekit:
     filter:
       exclude_domains:
         - automation
+        - lock
         - media_player
       exclude_entities:
         - lock.lock_e6b7_lock_mechanism

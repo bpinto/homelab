@@ -25,6 +25,54 @@ automation:
                 entity_id: switch.model_y_charge
   mode: single
 
+  - sensor:
+      # EV power actually drawn from the grid (capped by grid import)
+      - name: "Custom EV Grid Power"
+        unique_id: custom_ev_grid_power
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% set ev_power = states('sensor.tesla_wall_connector_total_power')|float(0) %}
+          {% set grid_import_raw = states('sensor.on_grid_export_power')|float(0) %}
+          {% set grid_import = -1 * grid_import_raw if grid_import_raw < 0 else 0 %}
+          {{ [ev_power, grid_import]|min }}
+        availability: >-
+          {{ states('sensor.tesla_wall_connector_total_power') not in ['unknown', 'unavailable']
+             and states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}
+
+      # Cost rate sensor - instantaneous cost rate in €/h
+      - name: "Custom EV Charging Cost Rate"
+        unique_id: custom_ev_charging_cost_rate
+        unit_of_measurement: "€/h"
+        state_class: measurement
+        state: >-
+          {% set ev_power_kw = states('sensor.custom_ev_grid_power')|float(0) %}
+          {% set price_kwh = states('sensor.active_provider_current_price_with_vat')|float(0) %}
+          {{ (ev_power_kw * price_kwh)|round(4) }}
+        availability: >-
+          {{ states('sensor.custom_ev_grid_power') not in ['unknown', 'unavailable']
+             and states('sensor.active_provider_current_price_with_vat') not in ['unknown', 'unavailable'] }}
+
+sensor:
+  # Integration sensor to convert EV grid power (W) to energy (kWh)
+  - platform: integration
+    source: sensor.custom_ev_grid_power
+    name: "Custom EV Grid Energy"
+    unique_id: custom_ev_grid_energy
+    unit_prefix: k
+    round: 3
+    method: left
+
+  # Integration of cost rate to get total cost in €
+  - platform: integration
+    source: sensor.custom_ev_charging_cost_rate
+    name: "Custom EV Charging Total Cost"
+    unique_id: custom_ev_charging_total_cost
+    unit_time: h
+    round: 2
+    method: left
+
 utility_meter:
   custom_tesla_wall_connector_energy_daily:
     source: sensor.tesla_wall_connector_energy
@@ -35,3 +83,35 @@ utility_meter:
     source: sensor.tesla_wall_connector_energy
     cycle: monthly
     name: "Tesla Wall Connector Energy Monthly"
+
+  # EV Grid Energy utility meters
+  custom_ev_grid_energy_daily:
+    source: sensor.custom_ev_grid_energy
+    cycle: daily
+    name: "Custom EV Grid Energy Daily"
+
+  custom_ev_grid_energy_monthly:
+    source: sensor.custom_ev_grid_energy
+    cycle: monthly
+    name: "Custom EV Grid Energy Monthly"
+
+  custom_ev_grid_energy_yearly:
+    source: sensor.custom_ev_grid_energy
+    cycle: yearly
+    name: "Custom EV Grid Energy Yearly"
+
+  # EV Charging Cost utility meters
+  custom_ev_charging_cost_daily:
+    source: sensor.custom_ev_charging_total_cost
+    cycle: daily
+    name: "Custom EV Charging Cost Daily"
+
+  custom_ev_charging_cost_monthly:
+    source: sensor.custom_ev_charging_total_cost
+    cycle: monthly
+    name: "Custom EV Charging Cost Monthly"
+
+  custom_ev_charging_cost_yearly:
+    source: sensor.custom_ev_charging_total_cost
+    cycle: yearly
+    name: "Custom EV Charging Cost Yearly"
