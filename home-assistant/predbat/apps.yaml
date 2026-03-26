@@ -156,7 +156,7 @@ pred_bat:
 
   # Temperature of the battery in degrees C
   battery_temperature:
-    - sensor.battery_temperature
+    - sensor.goodwe_battery_temperature
 
   ##
   # Controlling the Inverter: Power Data
@@ -164,11 +164,11 @@ pred_bat:
 
   # Current battery power in W or kW
   battery_power:
-    - sensor.battery_power
+    - sensor.goodwe_battery_power
 
   # Current PV power in W or kW
   pv_power:
-    - sensor.pv_power
+    - sensor.goodwe_pv_power
 
   # Current load power sensor in W (used with load_power_fill_enable to improve load_today data accuracy)
   load_power:
@@ -179,7 +179,7 @@ pred_bat:
 
   # Current grid power in W or kW
   grid_power:
-    - sensor.on_grid_export_power
+    - sensor.goodwe_on_grid_export_power
 
   ##
   # Controlling the Inverter: Battery SoC
@@ -187,7 +187,7 @@ pred_bat:
 
   # Battery SoC
   soc_percent:
-    - sensor.battery_state_of_charge
+    - sensor.goodwe_battery_state_of_charge
 
   ##
   # Solcast Solar Forecast
@@ -264,7 +264,7 @@ pred_bat:
     - "+[car_charging_limit]"
     - "+[car_charging_planned]"
     - "+[car_charging_soc]"
-    - "{car_charging_now}"
+    - "+[car_charging_now]"
 
   ##
   # Battery charge/discharge curves
