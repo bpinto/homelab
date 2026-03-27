@@ -8,14 +8,20 @@
 #   Country: PT
 #   Data source: https://github.com/joaofernandes/portuguese_energy_price_tracker_ha_integration
 #
-# Notes:
-#   Only monitor mode is supported at the moment.
+# Manually adjusted configuration options:
 #
-#   There are many hard coded values in this configuration file.
-#   The most important ones are highlighted below, but you should review the entire file and adjust as needed for your setup.
+#   Options for car charging integration:
+#  - input_number.predbat_car_charging_rate: 3.7kW
+#  - switch.predbat_car_charging_plan_smart: True
+#  - switch.predbat_car_charging_from_battery: True
+#  - select.predbat_car_charging_plan_time: 08:00:00
 #
-#  - Battery capacity (soc_max)
-#  - Inverter limit (inverter_limit)
+#   Options for ML load prediction:
+#  - switch.predbat_calculate_inday_adjustment: False
+#
+#   Options for plan flexibility:
+#  - switch.predbat_set_charge_low_power: True
+#
 # ------------------------------------------------------------------
 ---
 pred_bat:
@@ -114,6 +120,11 @@ pred_bat:
   # to ensure the battery charge rate is planned correctly.
   inverter_limit_charge:
     - 2000
+
+  # Overrides the maximum DC (solar) battery charge rate used in Predbat's prediction model
+  # when solar is available. This does not change how the inverter is controlled.
+  inverter_limit_charge_dc:
+    - 4600
 
   ##
   # Controlling the Inverter: Charge/Discharge rate
