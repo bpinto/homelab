@@ -22,12 +22,12 @@ template:
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
-          {% if states('sensor.on_grid_export_power')|float < 0 %}
-            {{ states('sensor.on_grid_export_power')|float * -1 }}
+          {% if states('sensor.goodwe_on_grid_export_power')|float < 0 %}
+            {{ states('sensor.goodwe_on_grid_export_power')|float * -1 }}
           {% else %}
             {{ 0 }}
           {% endif %}
-        availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
+        availability: "{{ states('sensor.goodwe_on_grid_export_power') not in ['unknown', 'unavailable'] }}"
 
       # Template sensor for values of energy exported (active_power > 0)
       - name: "Custom Goodwe Energy Export"
@@ -36,12 +36,12 @@ template:
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
-          {% if states('sensor.on_grid_export_power')|float > 0 %}
-            {{ states('sensor.on_grid_export_power')|float }}
+          {% if states('sensor.goodwe_on_grid_export_power')|float > 0 %}
+            {{ states('sensor.goodwe_on_grid_export_power')|float }}
           {% else %}
             {{ 0 }}
           {% endif %}
-        availability: "{{ states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}"
+        availability: "{{ states('sensor.goodwe_on_grid_export_power') not in ['unknown', 'unavailable'] }}"
 
       # Template sensor for values of battery charge (active_power < 0)
       - name: "Custom Goodwe Energy Battery Charge"
@@ -50,12 +50,12 @@ template:
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
-          {% if states('sensor.battery_power')|float < 0 %}
-            {{ states('sensor.battery_power')|float * -1 }}
+          {% if states('sensor.goodwe_battery_power')|float < 0 %}
+            {{ states('sensor.goodwe_battery_power')|float * -1 }}
           {% else %}
             {{ 0 }}
           {% endif %}
-        availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
+        availability: "{{ states('sensor.goodwe_battery_power') not in ['unknown', 'unavailable'] }}"
 
       # Template sensor for values of battery discharge (active_power > 0)
       - name: "Custom Goodwe Energy Battery Discharge"
@@ -64,12 +64,12 @@ template:
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
-          {% if states('sensor.battery_power')|float > 0 %}
-            {{ states('sensor.battery_power')|float }}
+          {% if states('sensor.goodwe_battery_power')|float > 0 %}
+            {{ states('sensor.goodwe_battery_power')|float }}
           {% else %}
             {{ 0 }}
           {% endif %}
-        availability: "{{ states('sensor.battery_power') not in ['unknown', 'unavailable'] }}"
+        availability: "{{ states('sensor.goodwe_battery_power') not in ['unknown', 'unavailable'] }}"
 
       # Template sensor for house consumption (PV + Import + Battery Discharge - Export - Battery Charge)
       - name: "Custom Goodwe House Consumption"
@@ -79,14 +79,14 @@ template:
         state_class: measurement
         state: >-
           {{
-            (states('sensor.pv_power')|float(0))
+            (states('sensor.goodwe_pv_power')|float(0))
             + (states('sensor.custom_goodwe_energy_import')|float(0))
             + (states('sensor.custom_goodwe_energy_battery_discharge')|float(0))
             - (states('sensor.custom_goodwe_energy_export')|float(0))
             - (states('sensor.custom_goodwe_energy_battery_charge')|float(0))
           }}
         availability: >-
-          {{ states('sensor.pv_power') not in ['unknown', 'unavailable']
+          {{ states('sensor.goodwe_pv_power') not in ['unknown', 'unavailable']
              and states('sensor.custom_goodwe_energy_import') not in ['unknown', 'unavailable']
              and states('sensor.custom_goodwe_energy_battery_discharge') not in ['unknown', 'unavailable']
              and states('sensor.custom_goodwe_energy_export') not in ['unknown', 'unavailable']
@@ -128,7 +128,7 @@ sensor:
     method: left
 
   - platform: integration
-    source: sensor.pv_power
+    source: sensor.goodwe_pv_power
     name: "Custom Goodwe PV Power Sum"
     unique_id: custom_goodwe_pv_power_sum
     unit_prefix: k
