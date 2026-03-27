@@ -35,12 +35,12 @@ template:
         state_class: measurement
         state: >-
           {% set ev_power = states('sensor.tesla_wall_connector_total_power')|float(0) %}
-          {% set grid_import_raw = states('sensor.on_grid_export_power')|float(0) %}
+          {% set grid_import_raw = states('sensor.goodwe_on_grid_export_power')|float(0) %}
           {% set grid_import = -1 * grid_import_raw if grid_import_raw < 0 else 0 %}
           {{ [ev_power, grid_import]|min }}
         availability: >-
           {{ states('sensor.tesla_wall_connector_total_power') not in ['unknown', 'unavailable']
-             and states('sensor.on_grid_export_power') not in ['unknown', 'unavailable'] }}
+             and states('sensor.goodwe_on_grid_export_power') not in ['unknown', 'unavailable'] }}
 
       # Cost rate sensor - instantaneous cost rate in €/h
       - name: "Custom EV Charging Cost Rate"
