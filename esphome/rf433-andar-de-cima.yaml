@@ -1,0 +1,11 @@
+substitutions:
+  name: rf433-andar-de-cima
+  friendly_name: RF433 Andar de Cima
+  blind_id_quarto_sofia: !secret blind_id_quarto_sofia
+  blind_id_quarto_lucas: !secret blind_id_quarto_lucas
+  blind_id_cozinha_vidro_fixo: !secret blind_id_cozinha_vidro_fixo
+  blind_id_cozinha_porta: !secret blind_id_cozinha_porta
+  blind_id_sala_sinuca_direita: !secret blind_id_sala_sinuca_direita
+  blind_id_sala_sinuca_esquerda: !secret blind_id_sala_sinuca_esquerda
+
+<<: !include packages/rf433-transmitter-m5nanoc6.yaml

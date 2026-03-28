@@ -1,0 +1,139 @@
+# RF 433MHz Blind Transmitter on M5Stack NanoC6 ESP32-C6
+#
+# Purpose: Control electric blinds via 433MHz Dooya protocol
+#
+# Hardware:
+#
+# Description: M5Stack M5NanoC6 (ESP32-C6)
+# https://mauser.pt/095-4088/m5stack-m5nanoc6-kit-de-desenvolvimento-nano-iot-com-esp32-c6-wi-fi-6-zigbee-thread-e-matter
+#
+# Description: M5Stack RF433T - 433MHz Transmitter Unit (SKU: U137)
+# https://docs.m5stack.com/en/unit/rf433_t
+#
+# Wiring (Grove port):
+#   - NanoC6 Grove GPIO2 → RF433T DATA (yellow wire)
+#   - NanoC6 Grove 5V    → RF433T VCC  (red wire)
+#   - NanoC6 Grove GND   → RF433T GND  (black wire)
+#
+# Remote: Represtor COOL 1 canal
+# Protocol: Dooya (fixed code)
+#
+# Captured codes use channel=5, UP=1, DOWN=3, STOP=5
+# Remote IDs are stored in secrets/esphome.yaml
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-c6-devkitc-1
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: INFO
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+openthread:
+  tlv: !secret thread_tlv
+
+network:
+  enable_ipv6: true
+
+remote_transmitter:
+  id: rf433_transmitter
+  pin: GPIO2
+  carrier_duty_percent: 100%
+  non_blocking: false
+
+cover:
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores da Cozinha Porta"
+      cover_id: estores_cozinha_porta
+      blind_id: "${blind_id_cozinha_porta}"
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores da Cozinha Vidro Fixo"
+      cover_id: estores_cozinha_vidro_fixo
+      blind_id: "${blind_id_cozinha_vidro_fixo}"
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores do Quarto do Lucas"
+      cover_id: estores_quarto_lucas
+      blind_id: "${blind_id_quarto_lucas}"
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores do Quarto da Sofia"
+      cover_id: estores_quarto_sofia
+      blind_id: "${blind_id_quarto_sofia}"
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores da Sala de Sinuca Direita"
+      cover_id: estores_sala_sinuca_direita
+      blind_id: "${blind_id_sala_sinuca_direita}"
+  - !include
+    file: rf433-dooya-cover.yaml
+    vars:
+      cover_name: "Estores da Sala de Sinuca Esquerda"
+      cover_id: estores_sala_sinuca_esquerda
+      blind_id: "${blind_id_sala_sinuca_esquerda}"
+
+button:
+  - platform: restart
+    icon: mdi:power-cycle
+    name: "Restart ${friendly_name}"
+
+sensor:
+  - platform: uptime
+    name: Uptime
+    id: sys_uptime
+    update_interval: 60s
+
+  - platform: internal_temperature
+    name: "ESP Temperature"
+    id: sys_esp_temperature
+
+text_sensor:
+  - platform: openthread_info
+    ip_address:
+      name: "Off-mesh routable IP Address"
+    channel:
+      name: "Channel"
+    role:
+      name: "Device Role"
+    rloc16:
+      name: "RLOC16"
+    ext_addr:
+      name: "Extended Address"
+    eui64:
+      name: "EUI64"
+    network_name:
+      name: "Network Name"
+    pan_id:
+      name: "PAN ID"
+    ext_pan_id:
+      name: "Extended PAN ID"
+  - platform: version
+    name: Version
+    hide_timestamp: true
+    disabled_by_default: false
+    icon: mdi:new-box
+    entity_category: diagnostic
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time

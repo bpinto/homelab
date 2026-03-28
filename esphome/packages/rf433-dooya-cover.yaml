@@ -1,0 +1,43 @@
+# Reusable Dooya blind cover template
+#
+# Variables:
+#   cover_name:  Display name for the cover entity
+#   cover_id:    ESPHome entity ID
+#   blind_id:    Dooya remote ID (from secrets)
+
+platform: template
+name: ${cover_name}
+id: ${cover_id}
+device_class: shutter
+has_position: false
+assumed_state: true
+open_action:
+  - remote_transmitter.transmit_dooya:
+      transmitter_id: rf433_transmitter
+      id: ${blind_id}
+      channel: 5
+      button: 1
+      check: 1
+      repeat:
+        times: 5
+        wait_time: 1ms
+close_action:
+  - remote_transmitter.transmit_dooya:
+      transmitter_id: rf433_transmitter
+      id: ${blind_id}
+      channel: 5
+      button: 3
+      check: 3
+      repeat:
+        times: 5
+        wait_time: 1ms
+stop_action:
+  - remote_transmitter.transmit_dooya:
+      transmitter_id: rf433_transmitter
+      id: ${blind_id}
+      channel: 5
+      button: 5
+      check: 5
+      repeat:
+        times: 5
+        wait_time: 1ms
