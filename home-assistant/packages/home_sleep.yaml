@@ -1,6 +1,7 @@
 # Home sleep package
 #
-# Turn off outside lights and lock/close the outside doors at 22:30 every day.
+# Turn off outside lights, lock/close the outside doors and close the blinds
+# at 22:30 every day.
 # This package uses entity `label` attributes to find the targeted entities.
 #
 # - Lights: add `label: "Outside Lights"` to any light entity that should be
@@ -9,6 +10,7 @@
 #   represents the door you want secured. This automation calls lock.lock on any
 #   entity with that label. If your door is modeled as a cover (cover.*) or a
 #   different domain, update the service to the appropriate one (e.g., cover.close).
+# - Blinds: add `label: "Security Blinds"` to any cover entity that should be closed.
 
 automation:
   - id: home_sleep_turn_off_outside_lights_and_close_door
@@ -29,6 +31,8 @@ automation:
             {{ label_entities('outside_lights') }}
           outside_doors: >-
             {{ label_entities('outside_doors') }}
+          security_blinds: >-
+            {{ label_entities('security_blinds') }}
 
       - if:
           - condition: template
@@ -45,3 +49,11 @@ automation:
           - service: lock.lock
             data:
               entity_id: "{{ outside_doors }}"
+
+      - if:
+          - condition: template
+            value_template: "{{ security_blinds | length > 0 }}"
+        then:
+          - service: cover.close_cover
+            data:
+              entity_id: "{{ security_blinds }}"
