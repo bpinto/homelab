@@ -1,0 +1,108 @@
+# RF 433MHz Receiver on M5Stack NanoC6 ESP32-C6
+#
+# Purpose: Capture and decode 433MHz signals from blind remotes
+#
+# Hardware:
+#
+# Description: M5Stack M5NanoC6 (ESP32-C6)
+# https://mauser.pt/095-4088/m5stack-m5nanoc6-kit-de-desenvolvimento-nano-iot-com-esp32-c6-wi-fi-6-zigbee-thread-e-matter
+#
+# Description: M5Stack RF433R - 433MHz Receiver Unit (SKU: U138)
+# https://docs.m5stack.com/en/unit/rf433_r
+#
+# Wiring (Grove port):
+#   - NanoC6 Grove GPIO1 → RF433R DATA (white wire)
+#   - NanoC6 Grove 5V    → RF433R VCC  (red wire)
+#   - NanoC6 Grove GND   → RF433R GND  (black wire)
+#
+# Remote: Represtor COOL 1 canal
+# Protocol: Dooya (fixed code)
+#
+# Captured codes use channel=5, UP=1, DOWN=3, STOP=5
+# Remote IDs are stored in secrets/esphome.yaml
+
+substitutions:
+  name: rf433-blinds-receiver
+  friendly_name: RF433 Blinds Receiver
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32-c6-devkitc-1
+  flash_size: 4MB
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+openthread:
+  tlv: !secret thread_tlv
+
+network:
+  enable_ipv6: true
+
+remote_receiver:
+  pin:
+    number: GPIO1
+    mode:
+      input: true
+  dump: dooya
+  filter: 50us
+  idle: 10ms
+
+button:
+  - platform: restart
+    icon: mdi:power-cycle
+    name: "Restart ${friendly_name}"
+
+sensor:
+  - platform: uptime
+    name: Uptime
+    id: sys_uptime
+    update_interval: 60s
+
+  - platform: internal_temperature
+    name: "ESP Temperature"
+    id: sys_esp_temperature
+
+text_sensor:
+  - platform: openthread_info
+    ip_address:
+      name: "Off-mesh routable IP Address"
+    channel:
+      name: "Channel"
+    role:
+      name: "Device Role"
+    rloc16:
+      name: "RLOC16"
+    ext_addr:
+      name: "Extended Address"
+    eui64:
+      name: "EUI64"
+    network_name:
+      name: "Network Name"
+    pan_id:
+      name: "PAN ID"
+    ext_pan_id:
+      name: "Extended PAN ID"
+  - platform: version
+    name: Version
+    hide_timestamp: true
+    disabled_by_default: false
+    icon: mdi:new-box
+    entity_category: diagnostic
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time

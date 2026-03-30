@@ -1,0 +1,48 @@
+# Blinds package
+#
+# Automations for the electric blinds controlled via RF433 Dooya protocol.
+# Cover entities are provided by the ESPHome rf433-andar-de-cima device.
+#
+# - Close all blinds and security blinds at sunset
+# - Open all blinds at sunrise
+#
+# Uses labels to dynamically find cover entities:
+# - "Blinds": opened at sunrise and closed at sunset
+# - "Security Blinds": closed at sunset only
+
+automation:
+  - id: blinds_close_at_sunset
+    alias: "Blinds — close at sunset"
+    description: "Close all blinds (label: Blinds) and security blinds (label: Security Blinds) at sunset."
+    trigger:
+      - platform: sun
+        event: sunset
+    action:
+      - variables:
+          covers: >-
+            {{ label_entities('blinds') + label_entities('security_blinds') }}
+      - if:
+          - condition: template
+            value_template: "{{ covers | length > 0 }}"
+        then:
+          - service: cover.close_cover
+            data:
+              entity_id: "{{ covers }}"
+
+  - id: blinds_open_at_sunrise
+    alias: "Blinds — open at sunrise"
+    description: "Open all blinds (label: Blinds) at sunrise."
+    trigger:
+      - platform: sun
+        event: sunrise
+    action:
+      - variables:
+          blinds: >-
+            {{ label_entities('blinds') }}
+      - if:
+          - condition: template
+            value_template: "{{ blinds | length > 0 }}"
+        then:
+          - service: cover.open_cover
+            data:
+              entity_id: "{{ blinds }}"
