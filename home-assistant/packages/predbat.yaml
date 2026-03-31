@@ -34,12 +34,13 @@ template:
               {% if start_dt < today_at() + timedelta(days=1) %}
                 {% set interval_clean = price.interval.strip('[]') %}
                 {% set start_str, end_str = interval_clean.split('-') %}
-                {% set start_parts = start_str.split(':') %}
                 {% set end_parts = end_str.split(':') %}
-                {% set start_minutes = (start_parts[0] | int) * 60 + (start_parts[1] | int) %}
-                {% set end_minutes = (end_parts[0] | int) * 60 + (end_parts[1] | int) %}
-                {% set duration = end_minutes - start_minutes %}
-                {% set end_dt = start_dt + timedelta(minutes=duration) %}
+                {% set end_hour = end_parts[0] | int %}
+                {% set end_minute = end_parts[1] | int %}
+                {% set end_dt = start_dt.replace(hour=end_hour, minute=end_minute, second=0, microsecond=0) %}
+                {% if end_dt <= start_dt %}
+                  {% set end_dt = end_dt + timedelta(days=1) %}
+                {% endif %}
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
@@ -56,12 +57,13 @@ template:
               {% if start_dt >= today_at() + timedelta(days=1) %}
                 {% set interval_clean = price.interval.strip('[]') %}
                 {% set start_str, end_str = interval_clean.split('-') %}
-                {% set start_parts = start_str.split(':') %}
                 {% set end_parts = end_str.split(':') %}
-                {% set start_minutes = (start_parts[0] | int) * 60 + (start_parts[1] | int) %}
-                {% set end_minutes = (end_parts[0] | int) * 60 + (end_parts[1] | int) %}
-                {% set duration = end_minutes - start_minutes %}
-                {% set end_dt = start_dt + timedelta(minutes=duration) %}
+                {% set end_hour = end_parts[0] | int %}
+                {% set end_minute = end_parts[1] | int %}
+                {% set end_dt = start_dt.replace(hour=end_hour, minute=end_minute, second=0, microsecond=0) %}
+                {% if end_dt <= start_dt %}
+                  {% set end_dt = end_dt + timedelta(days=1) %}
+                {% endif %}
                 {% set ns.output = ns.output + [{
                   'start': start_dt.isoformat(),
                   'end': end_dt.isoformat(),
