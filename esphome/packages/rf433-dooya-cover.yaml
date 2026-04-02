@@ -9,8 +9,11 @@ platform: template
 name: ${cover_name}
 id: ${cover_id}
 device_class: shutter
-has_position: false
-assumed_state: true
+
+assumed_state: true # Show both Open and Close buttons on Home Assistant
+has_position: false # No position feedback
+optimistic: true # Assume the command was successful
+
 open_action:
   - remote_transmitter.transmit_dooya:
       transmitter_id: rf433_transmitter
@@ -21,6 +24,7 @@ open_action:
       repeat:
         times: 5
         wait_time: 1ms
+
 close_action:
   - remote_transmitter.transmit_dooya:
       transmitter_id: rf433_transmitter
@@ -31,6 +35,7 @@ close_action:
       repeat:
         times: 5
         wait_time: 1ms
+
 stop_action:
   - remote_transmitter.transmit_dooya:
       transmitter_id: rf433_transmitter
