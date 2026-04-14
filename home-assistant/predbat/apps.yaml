@@ -28,6 +28,9 @@ pred_bat:
   module: predbat
   class: PredBat
 
+  # Override the default repository for the predbat module
+  predbat_repository: bpinto/batpred
+
   ##
   # Basics
   ##
