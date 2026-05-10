@@ -5,7 +5,7 @@
 # To authenticate with Tailscale, the following steps are required after the system boots:
 #
 # Obtain an authentication key from the Tailscale admin console (https://login.tailscale.com/admin/settings/keys).
-# sudo tailscale up --auth-key={{ AUTH_TOKEN }} --advertise-exit-node
+# sudo tailscale up --auth-key={{ AUTH_TOKEN }} --advertise-exit-node --accept-dns=false
 #
 # Allow the Tailscale client to be managed by the "hass" user:
 # sudo tailscale set --operator=hass

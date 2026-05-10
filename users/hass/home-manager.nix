@@ -10,6 +10,7 @@
     ./nushell.nix
 
     # Import containers
+    ../../containers/user/adguard-home.nix
     ../../containers/user/esphome.nix
     ../../containers/user/home-assistant.nix
     ../../containers/user/linkding.nix

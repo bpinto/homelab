@@ -17,6 +17,7 @@
     ../users/hass/nixos.nix
 
     # Import services
+    ../services/adguard-home.nix
     ../services/avahi.nix
     ../services/home-assistant.nix
     ../services/homelab-clone.nix
