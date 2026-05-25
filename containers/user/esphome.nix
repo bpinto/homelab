@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.esphome = {
-    image = "docker.io/esphome/esphome:2026.4.5";
+    image = "docker.io/esphome/esphome:2026.5.1";
 
     environment = {
       TZ = "Europe/Lisbon";
