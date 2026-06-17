@@ -33,6 +33,9 @@
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
+    extraConfig = ''
+      DNSStubListener=no
+    '';
   };
 
   # Use systemd-networkd for network management
