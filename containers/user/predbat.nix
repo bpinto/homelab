@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.predbat = {
-    image = "docker.io/nipar44/predbat_addon:slim-v8.40.8";
+    image = "docker.io/nipar44/predbat_addon:slim-v8.40.10";
 
     environment = {
       TZ = "Europe/Lisbon";
