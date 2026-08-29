@@ -47,7 +47,7 @@ pred_bat:
   ha_url: !secret ha_url
   ha_key: !secret ha_key
 
-  # Take the average of the same day for the last 2 weeks for future load forecasting
+  # Sizes the load history search window: max(days_previous) = 14 days
   days_previous:
     - 7
     - 14
@@ -156,6 +156,8 @@ pred_bat:
   # Maximum charge level for the battery in kWh
   soc_max:
     - 7.0 # Pylontech US3000C battery (3.5kWh capacity per battery)
+
+  battery_scaling_auto: True
 
   # Limits the target SoC% setting for charge and discharge
   battery_min_soc:
