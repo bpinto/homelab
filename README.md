@@ -65,7 +65,7 @@ cd /path/to/homelab
 # Set VM IP address
 export NIXADDR=192.168.58.XXX
 
-# For Apple Silicon (M1/M2/M3/etc):
+# The VM configuration (Apple Silicon host)
 export NIXNAME=vm-aarch64
 ```
 
