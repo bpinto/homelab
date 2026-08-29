@@ -2,10 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended", ":disableDependencyDashboard"],
   "nix": { "enabled": true },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "extends": ["schedule:weekly"]
+  },
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["containers/.*\\.nix$"],
+      "managerFilePatterns": ["/containers/.*\\.nix$/"],
       "matchStrings": [
         "image\\s*=\\s*\"docker\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[^\"]+)\""
       ],
@@ -14,7 +18,7 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["containers/.*\\.nix$"],
+      "managerFilePatterns": ["/containers/.*\\.nix$/"],
       "matchStrings": [
         "image\\s*=\\s*\"ghcr\\.io/(?<depName>[\\w.-]+/[\\w./-]+):(?<currentValue>[^\"]+)\""
       ],
@@ -25,7 +29,7 @@
   "packageRules": [
     {
       "matchManagers": ["custom.regex"],
-      "matchPackagePatterns": [".*"],
+      "matchPackageNames": ["*"],
       "versioning": "semver"
     },
     {
