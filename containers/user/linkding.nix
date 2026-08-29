@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.linkding = {
-    image = "ghcr.io/sissbruecker/linkding:1.45.0";
+    image = "ghcr.io/sissbruecker/linkding:1.46.2";
 
     environment = {
       TZ = "Europe/Lisbon";
