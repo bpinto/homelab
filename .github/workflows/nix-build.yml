@@ -1,0 +1,41 @@
+---
+name: Build NixOS configurations
+
+on:
+  pull_request:
+    paths:
+      - "**/*.nix"
+      - "flake.lock"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.configuration }}
+    runs-on: ${{ matrix.runner }}
+
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - configuration: bmax
+            runner: ubuntu-latest
+          - configuration: vm-aarch64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+
+      - name: Build system closure
+        run: |
+          nix build --no-link --print-build-logs \
+            ".#nixosConfigurations.${{ matrix.configuration }}.config.system.build.toplevel"

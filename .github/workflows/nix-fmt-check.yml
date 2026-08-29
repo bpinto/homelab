@@ -29,4 +29,4 @@ jobs:
       - name: Check formatting
         run: |
           echo "Checking Nix file formatting with nixfmt-rfc-style..."
-          nix fmt -- --check .
+          git ls-files -z '*.nix' | xargs -0 --no-run-if-empty nix fmt -- --check
