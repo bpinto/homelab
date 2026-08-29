@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.adguard-home = {
-    image = "docker.io/adguard/adguardhome:v0.107.74";
+    image = "docker.io/adguard/adguardhome:v0.107.79";
 
     environment = {
       TZ = "Europe/Lisbon";
