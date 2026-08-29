@@ -59,6 +59,10 @@
       DHCP = "yes";
       IPv6AcceptRA = true;
     };
+
+    dhcpV4Config.UseDNS = false;
+    dhcpV6Config.UseDNS = false;
+    ipv6AcceptRAConfig.UseDNS = false;
   };
 
   # WiFi configuration - matches any WiFi interface
@@ -70,6 +74,10 @@
       DHCP = "yes";
       IPv6AcceptRA = true;
     };
+
+    dhcpV4Config.UseDNS = false;
+    dhcpV6Config.UseDNS = false;
+    ipv6AcceptRAConfig.UseDNS = false;
   };
 
   # Connect to WiFi using iwctl command
