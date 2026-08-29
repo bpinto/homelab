@@ -47,12 +47,6 @@
           specialArgs = { inherit home-manager sops-nix; };
           modules = [ ./machines/vm-aarch64/default.nix ];
         };
-
-        vm-x86_64 = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = { inherit home-manager sops-nix; };
-          modules = [ ./machines/vm-x86_64/default.nix ];
-        };
       };
     };
 }

@@ -6,7 +6,7 @@ NIXPORT ?= 22
 NIXUSER ?= hass
 
 # The name of the nixosConfiguration in the flake
-NIXNAME ?= vm-aarch64 # Options: bmax, vm-aarch64, vm-x86_64
+NIXNAME ?= vm-aarch64 # Options: bmax, vm-aarch64
 
 # Get the path to this Makefile and directory
 MAKEFILE_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
