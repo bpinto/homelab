@@ -102,6 +102,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
   - platform: integration
     source: sensor.custom_goodwe_energy_export
@@ -110,6 +111,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
   - platform: integration
     source: sensor.custom_goodwe_energy_battery_charge
@@ -118,6 +120,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
   - platform: integration
     source: sensor.custom_goodwe_energy_battery_discharge
@@ -126,6 +129,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
   - platform: integration
     source: sensor.goodwe_pv_power
@@ -134,6 +138,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
   - platform: integration
     source: sensor.custom_goodwe_house_consumption
@@ -142,6 +147,7 @@ sensor:
     unit_prefix: k
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
 utility_meter:
   custom_goodwe_energy_import_daily:

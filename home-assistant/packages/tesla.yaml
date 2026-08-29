@@ -64,6 +64,7 @@ sensor:
     unit_prefix: k
     round: 3
     method: left
+    max_sub_interval: "00:01:00"
 
   # Integration of cost rate to get total cost in €
   - platform: integration
@@ -73,6 +74,7 @@ sensor:
     unit_time: h
     round: 2
     method: left
+    max_sub_interval: "00:01:00"
 
 utility_meter:
   custom_tesla_wall_connector_energy_daily:
