@@ -6,7 +6,9 @@ secrets.yaml
 *.crt
 
 # ESPHome
+esphome/.device-builder*
 esphome/.esphome/
+esphome/.gitignore
 esphome/.home-assistant-secrets.yaml
 esphome/archive/
 
@@ -45,13 +47,23 @@ home-assistant/*.conf
 home-assistant/solcast_solar/
 
 # Predbat
+home-assistant/predbat/gateway_status.proto
+home-assistant/predbat/manifest.yaml
 home-assistant/predbat/predbat_config.json
+home-assistant/predbat/predbat_dashboard.yaml
+home-assistant/predbat/predbat_ml_history.npz
+home-assistant/predbat/predbat_ml_model.npz
+home-assistant/predbat/cache/
+home-assistant/predbat/__pycache__/
 
 # Matter Server
 home-assistant/matter-server/
 
 # Linkding
 linkding/
+
+# AdGuard Home (runtime data/work dirs)
+adguard-home/
 
 # Nix build outputs
 result
