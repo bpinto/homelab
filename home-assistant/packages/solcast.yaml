@@ -10,6 +10,13 @@ automation:
       - condition: time
         after: "01:00:00"
         before: "03:00:00"
+      - condition: template
+        value_template: >-
+          {% set matches = integration_entities('solcast_solar') | select('search', 'api_used') | list %}
+          {% set api_entity = matches[0] if matches else none %}
+          {{ api_entity is not none and
+             (state_attr(api_entity, 'api_actuals_used') | int(0))
+             < (state_attr(api_entity, 'daily_typical_forecast_updates') | int(0)) }}
     action:
       - delay:
           seconds: "{{ range(30, 360)|random|int }}"
