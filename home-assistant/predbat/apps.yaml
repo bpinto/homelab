@@ -16,9 +16,6 @@
 #  - switch.predbat_car_charging_from_battery: True
 #  - select.predbat_car_charging_plan_time: 08:00:00
 #
-#   Options for ML load prediction:
-#  - switch.predbat_calculate_inday_adjustment: False
-#
 #   Options for plan flexibility:
 #  - switch.predbat_set_charge_low_power: True
 #
