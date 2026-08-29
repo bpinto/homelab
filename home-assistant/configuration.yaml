@@ -32,10 +32,11 @@ homekit:
         - lock.lock_e6b7_lock_mechanism
 
 # Expose Home Assistant to the tailscale network
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 127.0.0.1
+# Migrated to UI config (Settings > System > Network) - HA now manages this from storage.
+#http:
+#  use_x_forwarded_for: true
+#  trusted_proxies:
+#    - 127.0.0.1
 
 logger:
   default: warning
