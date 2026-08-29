@@ -32,10 +32,10 @@
   # Enable resolved for DNS
   services.resolved = {
     enable = true;
-    dnssec = "allow-downgrade";
-    extraConfig = ''
-      DNSStubListener=no
-    '';
+    settings.Resolve = {
+      DNSSEC = "allow-downgrade";
+      DNSStubListener = "no";
+    };
   };
 
   # Use systemd-networkd for network management

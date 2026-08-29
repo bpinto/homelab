@@ -17,14 +17,12 @@
   };
 
   # Configure systemd-resolved to cooperate with Avahi
-  services.resolved = {
-    extraConfig = ''
-      # Resolved in a listen-only/fallback mode
-      MulticastDNS=resolve
-    '';
+  services.resolved.settings.Resolve = {
+    # Resolved in a listen-only/fallback mode
+    MulticastDNS = "resolve";
 
     # Disable LLMNR (not needed for mDNS/Avahi and can be a security risk)
-    llmnr = "false";
+    LLMNR = "false";
   };
 
   # Open firewall for mDNS (UDP port 5353)

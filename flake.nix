@@ -5,13 +5,14 @@
     # Pin our primary nixpkgs repository. This is the main nixpkgs repository
     # we'll use for our configurations. Be very careful changing this because
     # it'll impact your entire system.
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
     # NixOS profiles to optimize settings for different hardware.
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
 
     # home-manager module for user environment management
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # sops-nix module to handle encrypted secrets
