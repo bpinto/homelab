@@ -1,32 +1,599 @@
+input_boolean:
+  ev_solar_surplus:
+    name: "EV Solar Surplus Charging"
+    icon: mdi:solar-power-variant
+  ev_manual_override:
+    name: "EV Manual Charge Override"
+    icon: mdi:hand-back-right
+
+input_datetime:
+  ev_last_automation_command:
+    name: "EV Last Automation Command"
+    has_date: true
+    has_time: true
+
+input_number:
+  ev_battery_capacity:
+    name: "EV Battery Capacity"
+    icon: mdi:battery-high
+    min: 10
+    max: 200
+    step: 1
+    unit_of_measurement: "kWh"
+    initial: 79
+
 automation:
-  alias: Car charging
-  description: "Start/stop car charging based on Predbat determined slots"
-  triggers:
-    - trigger: state
-      entity_id:
-        - binary_sensor.predbat_car_charging_slot
-  actions:
-    - choose:
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.predbat_car_charging_slot
-              state: "on"
-          sequence:
-            - service: switch.turn_on
-              target:
-                entity_id: switch.model_y_charge
-        - conditions:
-            - condition: state
-              entity_id: binary_sensor.predbat_car_charging_slot
-              state: "off"
-          sequence:
-            - service: switch.turn_off
-              target:
-                entity_id: switch.model_y_charge
-  mode: single
+  - alias: Car charging
+    description: "Start/stop car charging based on Predbat determined slots"
+    triggers:
+      - trigger: state
+        entity_id:
+          - binary_sensor.predbat_car_charging_slot
+    actions:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ev_last_automation_command
+        data:
+          timestamp: "{{ now().timestamp() }}"
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "on"
+            sequence:
+              - service: number.set_value
+                target:
+                  entity_id: number.model_y_charge_current
+                data:
+                  value: 16
+              - service: switch.turn_on
+                target:
+                  entity_id: switch.model_y_charge
+
+          # Do not cut a surplus session short. When the slot ends during daylight and
+          # there is still enough excess solar, the surplus automations keep control.
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "off"
+              - condition: state
+                entity_id: input_boolean.ev_solar_surplus
+                state: "on"
+              - condition: numeric_state
+                entity_id: sensor.custom_ev_surplus_target_amps
+                above: 4
+            sequence:
+              - service: number.set_value
+                target:
+                  entity_id: number.model_y_charge_current
+                data:
+                  value: "{{ [states('sensor.custom_ev_surplus_target_amps')|int(0), 24]|min }}"
+
+          # Slot has ended and there is no surplus worth chasing
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.predbat_car_charging_slot
+                state: "off"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: switch.model_y_charge
+    mode: single
+
+  # ------------------------------------------------------------------
+  # Solar surplus charging
+  #
+  # Predbat only plans cheap-rate night slots. These three automations cover daytime: soaking
+  # up PV that would otherwise export for nothing.
+  #
+  # Control signal is measured grid export, not a computed surplus - the GoodWe already fills
+  # the house battery before exporting, so battery-first priority is free. Self-corrects too:
+  # overshoot the amps and export falls, pulling the target back down.
+  #
+  # Economics (export pays 0 under the current tariff):
+  #   surplus -> battery  ~0.171/kWh (0.1904 fora vazio, less ~10% round trip)
+  #   surplus -> car       0.110/kWh (0.1101 vazio night rate)
+  #   surplus -> grid      0.00/kWh
+  #
+  # Two ceilings:
+  #   16A (3.7kW) at night - grid-bought, shares the 6.9kW import limit with the house battery
+  #   (2.0kW) and house (1.2kW).
+  #   24A (5.5kW) on surplus - solar-powered, so the import limit doesn't apply. Real ceiling is
+  #   the inverter's 5000W AC output less house load (~21A); 24A is just a backstop for PV
+  #   collapsing faster than the 2 minute control loop reacts, and even then the house battery
+  #   covers the gap first (5.5kW car + 1.2kW house = 6.7kW, under the 6.9kW import limit).
+  # ------------------------------------------------------------------
+  - alias: EV solar surplus - start
+    description: "Begin charging the car once there is sustained excess solar"
+    triggers:
+      # Starts at 7A rather than the 5A the car can actually accept, to leave a gap above the
+      # 4A stop threshold.
+      - trigger: numeric_state
+        entity_id: sensor.custom_ev_surplus_target_amps
+        above: 6
+        for: "00:05:00"
+      - trigger: state
+        entity_id: sensor.tesla_wall_connector_status
+        to:
+          - "connected"
+          - "ready"
+          - "waiting_car"
+    conditions:
+      - condition: state
+        entity_id: sensor.tesla_wall_connector_status
+        # Same list as car_charging_planned_response in predbat's apps.yaml
+        state:
+          - "charging"
+          - "charging_reduced"
+          - "connected"
+          - "ready"
+          - "waiting_car"
+      - condition: state
+        entity_id: binary_sensor.custom_ev_surplus_eligible
+        state: "on"
+    actions:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ev_last_automation_command
+        data:
+          timestamp: "{{ now().timestamp() }}"
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_current
+        data:
+          value: "{{ [states('sensor.custom_ev_surplus_target_amps')|int(0), 24]|min }}"
+      - service: switch.turn_on
+        target:
+          entity_id: switch.model_y_charge
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: "start: target_amps={{ states('sensor.custom_ev_surplus_target_amps') }}"
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          title: "EV Charging"
+          message: "Charging · {{ states('sensor.custom_ev_surplus_target_amps') }}A from solar surplus"
+          data:
+            tag: ev_charging
+            live_update: true
+            critical_text: "{{ states('sensor.model_y_battery_level') }}%"
+            progress: "{{ states('sensor.model_y_battery_level') }}"
+            progress_max: "{{ states('number.model_y_charge_limit') }}"
+            notification_icon: mdi:ev-station
+            notification_icon_color: "#F9A825"
+            background_color: "#1B1B1B"
+            progress_bar_color: "#F9A825"
+    mode: single
+
+  - alias: EV solar surplus - track
+    description: "Follow the available surplus while charging on solar"
+    # Polled rather than state-triggered so the number of Tesla API commands is bounded:
+    # at most one write every 2 minutes, and only when the target has actually moved.
+    triggers:
+      - trigger: time_pattern
+        minutes: "/2"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_solar_surplus
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.ev_manual_override
+        state: "off"
+      - condition: state
+        entity_id: binary_sensor.predbat_car_charging_slot
+        state: "off"
+      - condition: state
+        entity_id: switch.model_y_charge
+        state: "on"
+      - condition: numeric_state
+        entity_id: sensor.custom_ev_surplus_target_amps
+        above: 4
+      # 1A deadband - without it every passing cloud burns an API command
+      - condition: template
+        value_template: >-
+          {% set target = [states('sensor.custom_ev_surplus_target_amps')|int(0), 24]|min %}
+          {% set current = states('number.model_y_charge_current')|int(0) %}
+          {{ (target - current)|abs >= 1 }}
+    actions:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ev_last_automation_command
+        data:
+          timestamp: "{{ now().timestamp() }}"
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_current
+        data:
+          value: "{{ [states('sensor.custom_ev_surplus_target_amps')|int(0), 24]|min }}"
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: debug
+          message: "track: target_amps={{ states('sensor.custom_ev_surplus_target_amps') }}"
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          title: "EV Charging"
+          message: >-
+            Charging · {{ [states('sensor.custom_ev_surplus_target_amps')|int(0), 24]|min }}A
+            from solar surplus
+          data:
+            tag: ev_charging
+            live_update: true
+            critical_text: "{{ states('sensor.model_y_battery_level') }}%"
+            progress: "{{ states('sensor.model_y_battery_level') }}"
+            progress_max: "{{ states('number.model_y_charge_limit') }}"
+            notification_icon: mdi:ev-station
+            notification_icon_color: "#F9A825"
+            background_color: "#1B1B1B"
+            progress_bar_color: "#F9A825"
+    mode: single
+    max_exceeded: silent
+
+  - alias: EV solar surplus - stop
+    description: "Stop solar charging when the surplus drops below the car's minimum"
+    triggers:
+      # Stops below 5A because that is the car's own floor - it cannot draw less.
+      # Together with the 7A start threshold this gives a 15 minute minimum cycle period, so
+      # the worst a broken-cloud day can do is around 4 starts per hour.
+      - trigger: numeric_state
+        entity_id: sensor.custom_ev_surplus_target_amps
+        below: 5
+        for: "00:10:00"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_solar_surplus
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.ev_manual_override
+        state: "off"
+      - condition: state
+        entity_id: binary_sensor.predbat_car_charging_slot
+        state: "off"
+    actions:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ev_last_automation_command
+        data:
+          timestamp: "{{ now().timestamp() }}"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.model_y_charge
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_current
+        data:
+          value: 16
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: "stop: target_amps={{ states('sensor.custom_ev_surplus_target_amps') }}"
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          message: "clear_notification"
+          data:
+            tag: ev_charging
+    mode: single
+
+  - alias: EV solar surplus - stop on thin margin
+    description: "Stop solar charging as soon as the battery's full-ish cushion before dusk drops below 45 minutes"
+    triggers:
+      - trigger: time_pattern
+        minutes: "/5"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_solar_surplus
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.ev_manual_override
+        state: "off"
+      - condition: state
+        entity_id: binary_sensor.predbat_car_charging_slot
+        state: "off"
+      - condition: numeric_state
+        entity_id: sensor.custom_predbat_full_minutes_before_dusk
+        below: 45
+      - condition: numeric_state
+        entity_id: sensor.goodwe_battery_state_of_charge
+        below: 95
+    actions:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ev_last_automation_command
+        data:
+          timestamp: "{{ now().timestamp() }}"
+      - service: switch.turn_off
+        target:
+          entity_id: switch.model_y_charge
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_current
+        data:
+          value: 16
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: "stop on thin margin: full_minutes_before_dusk={{ states('sensor.custom_predbat_full_minutes_before_dusk') }}"
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          message: "clear_notification"
+          data:
+            tag: ev_charging
+    mode: single
+
+  - alias: EV solar surplus - remind to plug in
+    description: "Notify when there's usable solar surplus and the car is home but not plugged in"
+    triggers:
+      - trigger: time_pattern
+        minutes: "/15"
+    conditions:
+      - condition: state
+        entity_id: device_tracker.model_y_location
+        state: "home"
+      - condition: state
+        entity_id: sensor.tesla_wall_connector_status
+        state: "not_connected"
+      - condition: state
+        entity_id: binary_sensor.custom_ev_surplus_eligible
+        state: "on"
+    actions:
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          title: "EV Charging"
+          message: >-
+            Solar surplus available ({{ states('sensor.custom_ev_surplus_target_amps') }}A)
+            but the car isn't plugged in
+          data:
+            tag: ev_plug_reminder
+    mode: single
+
+  - alias: EV solar surplus - clear plug in reminder
+    description: "Clear the plug-in reminder once the car is connected"
+    triggers:
+      - trigger: state
+        entity_id: sensor.tesla_wall_connector_status
+        to:
+          - "charging"
+          - "charging_reduced"
+          - "connected"
+          - "ready"
+          - "waiting_car"
+    actions:
+      - service: notify.mobile_app_brunos_iphone
+        data:
+          message: "clear_notification"
+          data:
+            tag: ev_plug_reminder
+    mode: single
+
+  # ------------------------------------------------------------------
+  # Manual override
+  #
+  # Lets a Tesla app / HA UI change to the charger win: any write to the switch or current
+  # that these automations didn't just make themselves is treated as manual and pauses the
+  # start/track/stop automations above until the charging session ends.
+  # ------------------------------------------------------------------
+  - alias: EV manual override - detect
+    description: "Flag manual control of the charger so the surplus automations back off"
+    triggers:
+      - trigger: state
+        entity_id:
+          - switch.model_y_charge
+          - number.model_y_charge_current
+    conditions:
+      - condition: template
+        value_template: >-
+          {% set last = states('input_datetime.ev_last_automation_command') %}
+          {{ last in ['unknown', 'unavailable']
+             or (now() - (last | as_datetime)).total_seconds() > 10 }}
+    actions:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ev_manual_override
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: "manual override set: {{ trigger.entity_id }} changed outside automation"
+    mode: single
+
+  - alias: EV manual override - clear on session end
+    description: "Hand control back to the surplus automations once a manual charging session ends"
+    triggers:
+      - trigger: state
+        entity_id: sensor.tesla_wall_connector_status
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_manual_override
+        state: "on"
+      - condition: template
+        value_template: >-
+          {{ trigger.from_state is not none and trigger.to_state is not none
+             and trigger.from_state.state in ['charging', 'charging_reduced']
+             and trigger.to_state.state not in ['charging', 'charging_reduced'] }}
+    actions:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.ev_manual_override
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: >-
+            manual override cleared: session ended
+            ({{ trigger.from_state.state }} -> {{ trigger.to_state.state }})
+    mode: single
+
+  - alias: EV charge limit - daily solar reset
+    description: "Reset the car's charge limit to 80% each morning"
+    triggers:
+      - trigger: time
+        at: "08:00:00"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_solar_surplus
+        state: "on"
+    actions:
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_limit
+        data:
+          value: 80
+    mode: single
+
+  - alias: EV charge limit - reduce for night charging
+    description: "Drop the charge limit to a 60-70% target (sized on tomorrow's forecast) once no more solar surplus is forecast for today"
+    triggers:
+      - trigger: sun
+        event: sunset
+    conditions:
+      - condition: state
+        entity_id: input_boolean.ev_solar_surplus
+        state: "on"
+    actions:
+      - service: number.set_value
+        target:
+          entity_id: number.model_y_charge_limit
+        data:
+          value: "{{ states('sensor.custom_ev_night_charge_target') | int }}"
+      - service: system_log.write
+        data:
+          logger: custom_components.ev_solar_surplus
+          level: info
+          message: >-
+            night charge limit: target={{ states('sensor.custom_ev_night_charge_target') }}%
+            (remaining today={{ states('sensor.custom_ev_solar_surplus_remaining_today') }}kWh)
+    mode: single
 
 template:
   - sensor:
+      # Predbat's forecasted export (results: ISO timestamp -> cumulative kWh, 5 minute steps)
+      # is a running total, so the export still to come today is just the value expected at
+      # midnight minus the value expected right now.
+      - name: "Custom EV Solar Surplus Remaining Today"
+        unique_id: custom_ev_solar_surplus_remaining_today
+        device_class: energy
+        unit_of_measurement: "kWh"
+        state_class: measurement
+        state: >-
+          {% set results = state_attr('predbat.best_export_energy', 'results') or {} %}
+          {% set now_dt = now() %}
+          {% set midnight_dt = today_at() + timedelta(days=1) %}
+          {% set ns = namespace(now_val=0, midnight_val=0) %}
+          {% for ts, val in results.items() | sort %}
+            {% set ts_dt = ts | as_datetime %}
+            {% if ts_dt <= now_dt %}
+              {% set ns.now_val = val %}
+            {% endif %}
+            {% if ts_dt <= midnight_dt %}
+              {% set ns.midnight_val = val %}
+            {% endif %}
+          {% endfor %}
+          {{ (ns.midnight_val - ns.now_val) | round(2) }}
+        availability: >-
+          {{ states('predbat.best_export_energy') not in ['unknown', 'unavailable']
+             and state_attr('predbat.best_export_energy', 'results') is not none }}
+
+      # Total minutes, between now and dusk (last time there will be solar), that predbat's
+      # plan expects the battery to be at (near) full. Not required to be contiguous - the
+      # optimizer cycles the battery for cost throughout the day rather than holding it flat,
+      # so this is "how much full-ish time is left overall," not "is it full right now."
+      - name: "Custom Predbat Full Minutes Before Dusk"
+        unique_id: custom_predbat_full_minutes_before_dusk
+        unit_of_measurement: "min"
+        state: >-
+          {% set results = state_attr('predbat.soc_kw_best', 'results') or {} %}
+          {% set soc_max = states('sensor.predbat_soc_max_calculated')|float(7.0) %}
+          {% set full_threshold = soc_max - 0.001 %}
+          {% set cutoff_dt = state_attr('sun.sun', 'next_setting') %}
+          {% set cutoff_dt = cutoff_dt | as_datetime if cutoff_dt else now() %}
+          {% set ns = namespace(minutes=0, prev_dt=none, prev_val=none) %}
+          {% for ts, val in results.items() | sort %}
+            {% set ts_dt = ts | as_datetime %}
+            {% if now() <= ts_dt <= cutoff_dt %}
+              {% if ns.prev_dt is not none and ns.prev_val >= full_threshold %}
+                {% set ns.minutes = ns.minutes + ((ts_dt - ns.prev_dt).total_seconds() / 60) %}
+              {% endif %}
+              {% set ns.prev_dt = ts_dt %}
+              {% set ns.prev_val = val %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.prev_dt is not none and ns.prev_val >= full_threshold %}
+            {% set ns.minutes = ns.minutes + ((cutoff_dt - ns.prev_dt).total_seconds() / 60) %}
+          {% endif %}
+          {{ ns.minutes | round(0) }}
+        availability: >-
+          {{ state_attr('predbat.soc_kw_best', 'results') is not none
+             and states('sensor.predbat_soc_max_calculated') not in ['unknown', 'unavailable']
+             and state_attr('sun.sun', 'next_setting') is not none }}
+
+      # 70% minus however many percentage-points tomorrow's forecast surplus is expected to
+      # cover for free, clamped to 60-70%. 0.8 trust factor discounts the forecast since PV
+      # forecasts skew optimistic.
+      - name: "Custom EV Night Charge Target"
+        unique_id: custom_ev_night_charge_target
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >-
+          {% set results = state_attr('predbat.best_export_energy', 'results') or {} %}
+          {% set midnight_tomorrow = today_at() + timedelta(days=1) %}
+          {% set midnight_day_after = today_at() + timedelta(days=2) %}
+          {% set ns = namespace(tomorrow_val=0, day_after_val=0) %}
+          {% for ts, val in results.items() | sort %}
+            {% set ts_dt = ts | as_datetime %}
+            {% if ts_dt <= midnight_tomorrow %}
+              {% set ns.tomorrow_val = val %}
+            {% endif %}
+            {% if ts_dt <= midnight_day_after %}
+              {% set ns.day_after_val = val %}
+            {% endif %}
+          {% endfor %}
+          {% set forecast_tomorrow_kwh = ns.day_after_val - ns.tomorrow_val %}
+          {% set battery_capacity = states('input_number.ev_battery_capacity') | float(79) %}
+          {% set pct_points = forecast_tomorrow_kwh * 0.8 / battery_capacity * 100 %}
+          {{ [[70 - pct_points, 60] | max, 70] | min | round(0) }}
+        availability: >-
+          {{ states('predbat.best_export_energy') not in ['unknown', 'unavailable']
+             and state_attr('predbat.best_export_energy', 'results') is not none }}
+
+      # Amps the car could draw while keeping net grid flow at zero. Car's own draw is added
+      # back in (it's already part of grid/battery flow) and battery discharge is always
+      # subtracted (a real deficit must reduce surplus, not hide behind it). Battery charge is
+      # added back only once SoC >= 50% - below that the battery keeps exclusive claim on PV,
+      # above it the car competes for the rest instead of waiting for 100%. Between 95-98% a
+      # flat 300W of the battery's own draw is reserved for it (car gets the rest), so the
+      # battery can climb back to full without the session fully stopping (that only happens
+      # below 95%).
+      #
+      # Unclamped on purpose - automations need values below the 5A floor to know when to stop.
+      # Clamping happens at the write.
+      - name: "Custom EV Surplus Target Amps"
+        unique_id: custom_ev_surplus_target_amps
+        device_class: current
+        unit_of_measurement: "A"
+        state_class: measurement
+        state: >-
+          {% set ev_power = states('sensor.tesla_wall_connector_total_power')|float(0) * 1000 %}
+          {% set grid = states('sensor.goodwe_on_grid_export_power')|float(0) %}
+          {% set battery = states('sensor.goodwe_battery_power')|float(0) %}
+          {% set soc = states('sensor.goodwe_battery_state_of_charge')|float(0) %}
+          {% set battery_discharge = battery if battery > 0 else 0 %}
+          {% set battery_charge = -battery if battery < 0 else 0 %}
+          {% set battery_charge_available =
+               battery_charge if soc >= 98
+               else ([battery_charge - 300, 0] | max if soc >= 95
+               else (battery_charge if soc >= 50 else 0)) %}
+          {% set volts = states('sensor.tesla_wall_connector_grid_voltage')|float(230) %}
+          {% set volts = volts if volts > 100 else 230 %}
+          {{ ((ev_power + grid + battery_charge_available - battery_discharge) / volts)|round(0) }}
+        availability: >-
+          {{ states('sensor.tesla_wall_connector_total_power') not in ['unknown', 'unavailable']
+             and states('sensor.goodwe_on_grid_export_power') not in ['unknown', 'unavailable']
+             and states('sensor.goodwe_battery_power') not in ['unknown', 'unavailable']
+             and states('sensor.goodwe_battery_state_of_charge') not in ['unknown', 'unavailable'] }}
+
       # EV power actually drawn from the grid (capped by grid import)
       - name: "Custom EV Grid Power"
         unique_id: custom_ev_grid_power
@@ -34,7 +601,7 @@ template:
         unit_of_measurement: "W"
         state_class: measurement
         state: >-
-          {% set ev_power = states('sensor.tesla_wall_connector_total_power')|float(0) %}
+          {% set ev_power = states('sensor.tesla_wall_connector_total_power')|float(0) * 1000 %}
           {% set grid_import_raw = states('sensor.goodwe_on_grid_export_power')|float(0) %}
           {% set grid_import = -1 * grid_import_raw if grid_import_raw < 0 else 0 %}
           {{ [ev_power, grid_import]|min }}
@@ -54,6 +621,32 @@ template:
         availability: >-
           {{ states('sensor.custom_ev_grid_power') not in ['unknown', 'unavailable']
              and states('sensor.active_provider_current_price_with_vat') not in ['unknown', 'unavailable'] }}
+
+  - binary_sensor:
+      - name: "Custom EV Surplus Eligible"
+        unique_id: custom_ev_surplus_eligible
+        state: >-
+          {{ is_state('input_boolean.ev_solar_surplus', 'on')
+             and is_state('input_boolean.ev_manual_override', 'off')
+             and is_state('binary_sensor.predbat_car_charging_slot', 'off')
+             and states('sensor.custom_ev_surplus_target_amps')|float(0) > 6
+             and states('sensor.model_y_battery_level')|float(100)
+                 < states('number.model_y_charge_limit')|float(0)
+             and (states('sensor.custom_predbat_full_minutes_before_dusk')|float(0) > 30
+                  or states('sensor.goodwe_battery_state_of_charge')|float(0) >= 95)
+             and states('sensor.goodwe_battery_state_of_charge')|float(0) > 50 }}
+        attributes:
+          solar_surplus_enabled: "{{ is_state('input_boolean.ev_solar_surplus', 'on') }}"
+          manual_override_off: "{{ is_state('input_boolean.ev_manual_override', 'off') }}"
+          slot_off: "{{ is_state('binary_sensor.predbat_car_charging_slot', 'off') }}"
+          surplus_above_6a: "{{ states('sensor.custom_ev_surplus_target_amps')|float(0) > 6 }}"
+          car_below_its_limit: >-
+            {{ states('sensor.model_y_battery_level')|float(100)
+               < states('number.model_y_charge_limit')|float(0) }}
+          dusk_margin_or_already_full: >-
+            {{ states('sensor.custom_predbat_full_minutes_before_dusk')|float(0) > 30
+               or states('sensor.goodwe_battery_state_of_charge')|float(0) >= 95 }}
+          battery_above_50: "{{ states('sensor.goodwe_battery_state_of_charge')|float(0) > 50 }}"
 
 sensor:
   # Integration sensor to convert EV grid power (W) to energy (kWh)

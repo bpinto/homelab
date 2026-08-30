@@ -279,7 +279,7 @@ pred_bat:
   # Set the car SoC% if you have it to give an accurate forecast of the cars battery levels.
   # One entry per car if you have multiple cars.
   car_charging_battery_size:
-    - 79
+    - "input_number.ev_battery_capacity"
   car_charging_limit:
     - "number.model_y_charge_limit"
   car_charging_soc:
