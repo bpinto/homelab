@@ -231,16 +231,17 @@ pred_bat:
   metric_standing_charge: 0.7599 # 0.6178 without VAT
 
   # EDP Eletricidade Digital -20%, bi-horario diario (Vazio 22:00-08:00, Fora Vazio 08:00-22:00)
+  # Rates are in cents/kWh (metric_standing_charge above is in euros)
   rates_import:
     - start: "00:00:00"
       end: "08:00:00"
-      rate: 0.1101 # 0.0895 without VAT
+      rate: 11.01 # 8.95 without VAT
     - start: "08:00:00"
       end: "22:00:00"
-      rate: 0.1904 # 0.1548 without VAT
+      rate: 19.04 # 15.48 without VAT
     - start: "22:00:00"
       end: "00:00:00"
-      rate: 0.1101 # 0.0895 without VAT
+      rate: 11.01 # 8.95 without VAT
 
   # Flat export rate
   rates_export:
