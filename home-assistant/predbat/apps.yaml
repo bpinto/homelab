@@ -380,12 +380,10 @@ pred_bat:
       entity_id: "select.goodwe_inverter_operation_mode"
       option: general
 
-  # This is a no-op definition.
-  #
-  # Before adjusting the charge settings (adjust_charge_immediate method), Predbat will call
-  # this service to stop discharging, and then call the charge_start_service to start charging
-  # with the new settings.
-  #
-  # Without this no-op service, Predbat will call the charge_stop_service before calling the
-  # charge_start_service which would unnecessary cause the inverter mode to change twice.
-  discharge_stop_service: []
+  # We never force export, so there is nothing to stop - but this has to be a no-op service
+  # rather than an empty list. Predbat treats an empty list as "not configured" and falls back to
+  # charge_stop_service, writing the inverter mode twice (general, then eco_charge) on every
+  # charge transition. Dismissing a notification id that is never created does nothing.
+  discharge_stop_service:
+    - service: persistent_notification.dismiss
+      notification_id: predbat_discharge_stop_noop
