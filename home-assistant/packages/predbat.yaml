@@ -1,5 +1,29 @@
 template:
   - sensor:
+      # Feeds `inverter_limit_charge` in predbat's apps.yaml.
+      #
+      # The grid connection allows 6900W total, so while the EV is drawing 3700W the battery
+      # must stay at 2000W. When the EV is idle the cap is the battery bank limit (3700W).
+      #
+      # No `availability:` on purpose - if this sensor went unavailable predbat would fall back
+      # to `battery_rate_max` (5000W) and could overload the connection, so it always reports a
+      # value and defaults to the conservative 2000W whenever the EV state is not known to be idle.
+      - name: "Custom Predbat Inverter Charge Limit"
+        unique_id: custom_predbat_inverter_charge_limit
+        device_class: power
+        unit_of_measurement: "W"
+        state_class: measurement
+        state: >-
+          {% set slot = states('binary_sensor.predbat_car_charging_slot') %}
+          {% set status = states('sensor.tesla_wall_connector_status') %}
+          {% if slot in ['unknown', 'unavailable'] or status in ['unknown', 'unavailable'] %}
+            2000
+          {% elif slot == 'on' or status in ['charging', 'charging_reduced'] %}
+            2000
+          {% else %}
+            3700
+          {% endif %}
+
       # Convert PT energy prices to a format compatible with predbat
       # PT Integration: https://github.com/joaofernandes/portuguese_energy_price_tracker_ha_integration
       #

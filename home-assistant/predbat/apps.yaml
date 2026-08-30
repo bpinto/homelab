@@ -106,22 +106,36 @@ pred_bat:
   inverter_limit:
     - 5000
 
-  # My house's current maximum simultaneous grid import allowed is 6900W, so to avoid hitting
-  # this limit when both the EV and the house battery are charging from the grid, we limit
-  # charging to a maximum of 2000W from the grid.
-  # 3700W for EV charging
-  # 2000W for battery charging
-  # 1200W for house consumption
+  # My house's current maximum simultaneous grid import allowed is 6900W, so while the EV is
+  # charging the battery is capped at 2000W:
+  #   3700W EV + 2000W battery + 1200W house = 6900W
+  #
+  # When the EV is idle the cap is the battery bank limit instead (3700W, see below), which
+  # still fits comfortably: 3700W battery + 1200W house = 4900W.
+  #
+  # Predbat applies whatever value it reads across the whole 48h horizon - it cannot model a
+  # limit that varies over time - but it re-reads this entity every cycle and the sensor is on
+  # the watch_list, so it replans as soon as the EV state changes.
   #
   # IMPORTANT: If this value is removed/changed, review the `battery_rate_max` value as well
   # to ensure the battery charge rate is planned correctly.
   inverter_limit_charge:
-    - 2000
+    - sensor.custom_predbat_inverter_charge_limit
 
   # Overrides the maximum DC (solar) battery charge rate used in Predbat's prediction model
   # when solar is available. This does not change how the inverter is controlled.
+  #
+  # The inverter's battery port allows 100A (~4600W), but the bank is the tighter limit:
+  # 2x US3000C at 37A recommended each = 74A ~= 3700W. The measured charge curve at the bottom
+  # of this file tops out at 0.74 * 5000 = 3700W, which confirms it.
   inverter_limit_charge_dc:
-    - 4600
+    - 3700
+
+  # `battery_rate_max` (5000) caps both directions, and only the charge side is constrained by
+  # `inverter_limit_charge`. Without this, Predbat would model a 5000W discharge and plan for
+  # the battery to cover peaks it cannot actually reach.
+  inverter_limit_discharge:
+    - 3700
 
   ##
   # Controlling the Inverter: Charge/Discharge rate
@@ -156,9 +170,9 @@ pred_bat:
 
   battery_scaling_auto: True
 
-  # Limits the target SoC% setting for charge and discharge
+  # Limits the target SoC% setting for charge and discharge.
   battery_min_soc:
-    - 20
+    - 15
 
   # The reserve SoC is the lower limit target % to discharge the battery down to.
   reserve:
@@ -214,19 +228,19 @@ pred_bat:
   plan_interval_minutes: 15
 
   # Daily standing charge in euros, can be set to a sensor or manually entered (e.g. 0.50 is 50c)
-  metric_standing_charge: 0.7599  # 0.6178 sem IVA
+  metric_standing_charge: 0.7599 # 0.6178 without VAT
 
   # EDP Eletricidade Digital -20%, bi-horario diario (Vazio 22:00-08:00, Fora Vazio 08:00-22:00)
   rates_import:
     - start: "00:00:00"
       end: "08:00:00"
-      rate: 0.1101  # 0.0895 sem IVA
+      rate: 0.1101 # 0.0895 without VAT
     - start: "08:00:00"
       end: "22:00:00"
-      rate: 0.1904  # 0.1548 sem IVA
+      rate: 0.1904 # 0.1548 without VAT
     - start: "22:00:00"
       end: "00:00:00"
-      rate: 0.1101  # 0.0895 sem IVA
+      rate: 0.1101 # 0.0895 without VAT
 
   # Flat export rate
   rates_export:
@@ -284,6 +298,7 @@ pred_bat:
     - "+[car_charging_planned]"
     - "+[car_charging_soc]"
     - "+[car_charging_now]"
+    - "sensor.custom_predbat_inverter_charge_limit"
 
   ##
   # Battery charge/discharge curves
@@ -329,7 +344,6 @@ pred_bat:
     name: "GOODWE_5048D_ES"
     has_rest_api: False
     has_mqtt_api: False
-    has_service_api: True
     output_charge_control: "power"
     charge_control_immediate: False
     current_dp: 1
