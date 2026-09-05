@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.homeassistant = {
-    image = "ghcr.io/home-assistant/home-assistant:2026.9.0";
+    image = "ghcr.io/home-assistant/home-assistant:2026.9.1";
 
     addCapabilities = [
       "NET_ADMIN"
