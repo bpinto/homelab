@@ -33,7 +33,11 @@
 
       Unit = {
         # Wait for sops-nix to be ready before starting the Home Assistant container
-        After = [ "sops-nix.service" ];
+        Wants = [ "network-online.target" ];
+        After = [
+          "sops-nix.service"
+          "network-online.target"
+        ];
       };
     };
 
