@@ -19,8 +19,10 @@
     # Import services
     ../services/adguard-home.nix
     ../services/avahi.nix
+    ../services/bedrock-connect.nix
     ../services/home-assistant.nix
     ../services/homelab-clone.nix
+    ../services/minecraft-bedrock.nix
     ../services/miniflux.nix
     ../services/tailscale.nix
   ];
