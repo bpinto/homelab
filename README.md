@@ -146,6 +146,22 @@ make vm/copy
 make vm/switch
 ```
 
+## Manual Post-Deploy Steps
+
+Some services need one-time manual configuration that isn't nix-managed (stateful, runtime-only):
+
+**BedrockConnect** (lets consoles without a manual "Add Server" option, e.g. Nintendo Switch, join the `minecraft-bedrock` server): only one redirect-compatible domain needs a DNS rewrite — pick one from the table below, add it in AdGuard Home's UI under Filters > DNS rewrites, pointing to the host's LAN IP. The others are listed for reference in case you want more than one option.
+
+| Server | Domain |
+| --- | --- |
+| The Hive | `geo.hivebedrock.network`, `hivebedrock.network` |
+| Mineville | `play.inpvp.net` |
+| Lifeboat | `mco.lbsg.net` |
+| Galaxite | `play.galaxite.net` |
+| Enchanted Dragons | `play.enchanted.gg` |
+
+On the console: set both primary and secondary DNS to the host's LAN IP (avoids any fallback to a public resolver that would bypass AdGuard), then join whichever server has a rewrite configured (e.g. Lifeboat) from the Servers tab to open the BedrockConnect menu, which lists the real server.
+
 ## Resources
 
 - [NixOS Manual](https://nixos.org/manual/nixos/stable/)

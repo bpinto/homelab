@@ -33,7 +33,7 @@
   services.resolved = {
     enable = true;
     settings.Resolve = {
-      DNSSEC = "allow-downgrade";
+      DNSSEC = "false";
       DNSStubListener = "no";
     };
   };

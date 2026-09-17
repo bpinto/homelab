@@ -30,7 +30,11 @@
       };
 
       Unit = {
-        After = [ "podman-homeassistant.service" ];
+        Wants = [ "network-online.target" ];
+        After = [
+          "podman-homeassistant.service"
+          "network-online.target"
+        ];
         StartLimitIntervalSec = "0"; # retry indefinitely
       };
     };

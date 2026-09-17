@@ -18,6 +18,11 @@
       Service = {
         ExecStartPost = "${pkgs.tailscale}/bin/tailscale serve --service=svc:matter-server --tcp 5580 127.0.0.1:5580";
       };
+
+      Unit = {
+        Wants = [ "network-online.target" ];
+        After = [ "network-online.target" ];
+      };
     };
 
     extraPodmanArgs = [

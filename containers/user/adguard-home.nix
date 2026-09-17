@@ -23,6 +23,11 @@
       Service = {
         ExecStartPost = "${pkgs.tailscale}/bin/tailscale serve --service=svc:adguard-home 127.0.0.1:3000";
       };
+
+      Unit = {
+        Wants = [ "network-online.target" ];
+        After = [ "network-online.target" ];
+      };
     };
 
     extraPodmanArgs = [

@@ -11,10 +11,12 @@
 
     # Import containers
     ../../containers/user/adguard-home.nix
+    ../../containers/user/bedrock-connect.nix
     ../../containers/user/esphome.nix
     ../../containers/user/home-assistant.nix
     ../../containers/user/linkding.nix
     ../../containers/user/matter-server.nix
+    ../../containers/user/minecraft-bedrock.nix
     ../../containers/user/predbat.nix
   ];
 
