@@ -6,7 +6,7 @@
 
 {
   services.podman.containers.minecraft-bedrock = {
-    image = "docker.io/itzg/minecraft-bedrock-server:2026.8.2";
+    image = "docker.io/itzg/minecraft-bedrock-server:2026.9.0";
 
     environment = {
       ALLOW_LIST = "false";
