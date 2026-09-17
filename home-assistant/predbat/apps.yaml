@@ -257,6 +257,10 @@ pred_bat:
   # Also adjust car_charging_energy_scale if it's not in kwH to fix the units
   car_charging_energy: "sensor.tesla_wall_connector_energy_daily"
 
+  # car_charging_power drives the car icon on the power flow diagram
+  car_charging_power:
+    - "sensor.tesla_wall_connector_total_power"
+
   # Defines the number of cars modelled by the system, set to 0 for no car
   num_cars: 1
 
