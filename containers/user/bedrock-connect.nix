@@ -17,7 +17,7 @@ let
 in
 {
   services.podman.containers.bedrock-connect = {
-    image = "docker.io/pugmatt/bedrock-connect:1.70.0";
+    image = "docker.io/pugmatt/bedrock-connect:1.71.0";
 
     environment = {
       BC_CUSTOM_SERVERS = "/data/custom_servers.json";
